@@ -1,6 +1,18 @@
-html{
+/**
+ * @author Olga Osinskaya <ssinsk@yandex.ru>
+ * @author Noah Greer <Noah.Greer@gmail.com>
+ * @author Topher Gidos <tophgidos@gmail.com>
+ * 02/19/2018
+ * Winter 2018
+ * CSD 122 - JavaScript & jQuery
+ * Group Project - Group 3 (Olga Osinskaya, Noah Greer, and Topher Gidos)
+ *
+ * Main styles for the group project that will be used on all pages.
+ */
+html {
   background-color: #707070;
 }
+
 body {
   background-color: #4f4f4f;
   line-height: 1;
@@ -9,9 +21,6 @@ body {
   padding: 2px;
 }
 
-h1{
-  text-align: center;;
-}
 ol, ul {
   list-style: none;
 }
@@ -31,8 +40,7 @@ table {
   border-spacing: 0;
 }
 
-
-.about p{
+.about p {
   display: inline-block;
   width: 30%;
   margin: 10px;
@@ -42,6 +50,7 @@ table {
 .about {
   display: inline-block;
 }
+
 .about a {
   color: #eee;
   text-decoration: none;
@@ -75,7 +84,6 @@ table {
   margin: 0 -1px;
 }
 
-
 header {
   background-color: #539987;
   padding-top: 60px;
@@ -98,14 +106,17 @@ nav {
   /*width: 980px;*/
   background-color: #539987;
 }
+
 .nav a {
   display: block;
   text-decoration: none;
 }
+
 .nav > li {
   float: left;
   margin-right: 3px;
 }
+
 .nav > li > a {
   height: 54px;
   line-height: 54px;
@@ -123,6 +134,7 @@ nav {
   -webkit-box-shadow: inset 0 1px rgba(255, 255, 255, 0.3), inset 0 -2px 2px rgba(0, 0, 0, 0.03), 0 2px white, 0 0 2px rgba(0, 0, 0, 0.2);
   box-shadow: inset 0 1px rgba(255, 255, 255, 0.3), inset 0 -2px 2px rgba(0, 0, 0, 0.03), 0 2px white, 0 0 2px rgba(0, 0, 0, 0.2);
 }
+
 .nav > li > a:hover {
   text-decoration: none;
   background: #3dba86;
@@ -131,6 +143,7 @@ nav {
   background-image: -o-linear-gradient(top, #afc5d1, #85a6b8);
   background-image: linear-gradient(to bottom, #afc5d1, #85a6b8);
 }
+
 .nav > li.active > a, .nav > li > a:active, .nav > .dropdown:hover > a {
   background: white;
   color: #3dba86;
@@ -138,11 +151,13 @@ nav {
   -webkit-box-shadow: 0 2px white, 0 0 2px rgba(0, 0, 0, 0.2);
   box-shadow: 0 2px white, 0 0 2px rgba(0, 0, 0, 0.2);
 }
+
 .nav a.icon {
   position: relative;
   width: 40.8px;
   padding: 0;
 }
+
 .nav a.icon > span {
   display: block;
   position: absolute;
@@ -156,10 +171,12 @@ nav {
   text-shadow: none;
   color: transparent;
 }
+
 .nav a.icon.home > span {
-  background-image: url("../images/home.png");
+  background-image: url("../img/home.png");
   margin-top: 11px;
 }
+
 .nav .active a.icon > span, .nav a.icon:active > span {
   background-position: 0 -16px;
 }
@@ -168,9 +185,11 @@ nav {
   position: relative;
   border-bottom: 5px solid white;
 }
+
 .dropdown:hover ul {
   display: block;
 }
+
 .dropdown ul {
   display: none;
   position: absolute;
@@ -185,22 +204,64 @@ nav {
   -webkit-box-shadow: 0 0 1px rgba(0, 0, 0, 0.04);
   box-shadow: 0 0 1px rgba(0, 0, 0, 0.04);
 }
+
 .dropdown ul.large {
   min-width: 200px;
 }
+
 .dropdown li {
   display: block;
   margin: 0 88px;
   overflow: visible;
 }
+
 .dropdown li + li {
   border-top: 1px solid #eee;
 }
+
 .dropdown li a {
   color: #555;
   padding: 8px 18px;
   margin: 0 -18px;
 }
+
 .dropdown li a:hover {
   color: black;
+}
+
+footer {
+  /* border: solid 2px black; */
+  background-color: #2ca0b2;
+  clear: both;
+  padding-left: 20px;
+  border-top: 1px gray solid;
+  border-bottom: 1px gray solid;
+  display: block;
+  height: auto;
+}
+
+footer section {
+  display: inline-block;
+}
+
+.icons {
+  width: 20px;
+  height: 20px;
+  border: 0;
+}
+
+.footCopy {
+  text-align: center;
+}
+
+.footIcons div {
+  display: inline-block;
+}
+
+footer a {
+  text-decoration: none;
+}
+
+.copy {
+  padding-left: 630px;
 }
