@@ -10,6 +10,12 @@
 $(document).ready(function() {
  $("#reset").text("Reset Board");
 
+ /*function processTurn(){
+   if($(".boxTwo").val()=="x"){
+     $(".boxThree").text("o");
+   }
+ }
+ */
    $("input").keyup(function() {
      var value=$(this).val().toUpperCase();
 
@@ -19,10 +25,15 @@ $(document).ready(function() {
        $(this).css({ color: "#a31e1b" });
        $(this).attr("readonly", "readonly");
        $("#message").html("");
+       $(".boxThree").val("o");
+
      } else if ($(this).val().toLowerCase() != "x" || $(this).val().toLowerCase() != "o") {
-       $("#message").html("Please enter only a x or o");
+       $("#message").html("Please enter only X or O");
        $(this).attr("value", "");
      }
+
+
+
 
      if (
        $(".boxOne").val().toLowerCase() == "x" &&
@@ -163,7 +174,7 @@ $(document).ready(function() {
 
 
      $("#reset").click(function() {
-       window.location.assign("TicTacToeGame.html");
+       window.location.assign("tic-tac-toe.html");
      });
 
    });

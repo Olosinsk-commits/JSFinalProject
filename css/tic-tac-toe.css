@@ -7,6 +7,10 @@
  *
  * CSS for the game Tic Tac Toe.
  */
+
+ h1{
+   text-align: center;
+ }
  #boardWrapper {
    width: 360px;
    height: 400px;
