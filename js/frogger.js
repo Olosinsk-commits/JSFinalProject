@@ -5,10 +5,17 @@ var canvas = document.getElementById('canvas');
 var context = canvas.getContext('2d');
 	//variable for frog sprite
 var frog1 = new Image();
+<<<<<<< HEAD
 frog1.src = "images/frogger1.png";
 	//variable for cars
 var car = new Image();
 car.src = "images/cars.png";
+=======
+frog1.src = "../img/frogger/frogger1.png";
+	//variable for cars
+var car = new Image();
+car.src = "../img/frogger/cars.png";
+>>>>>>> frogger.js
 //variables for first car
 	//variables to allow all cars to move across the screen
 var carX1 = 100;
