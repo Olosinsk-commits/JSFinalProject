@@ -21,6 +21,8 @@ body {
   margin: auto;
   width: 80%;
   padding: 2px;
+  border: solid 1px white;
+  border-radius: 5px;
 }
 
 ol, ul {

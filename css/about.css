@@ -12,7 +12,8 @@
   height: 250px;
   border: 0;
   border-radius: 5px;
-   border: 2px solid #73AD21;
+   border: 2px solid white;/*#73AD21;*/
+   background-color: #539987;
 }
 
 .aboutUs p{
