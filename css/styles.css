@@ -87,10 +87,14 @@ table {
   padding: 1px 3px;
   margin: 0 -1px;
 }
-
+#sitenameAdd h1{
+  display: inline-block;
+  width: 33%;
+  text-align: center;
+}
 header {
   background-color: #539987;
-  padding-top: 60px;
+  padding-top: 5px;
   border-bottom: 1px solid #dadada;
   -webkit-box-shadow: 0 0 1px rgba(0, 0, 0, 0.04);
   box-shadow: 0 0 1px rgba(0, 0, 0, 0.04);
