@@ -7,3 +7,14 @@
  *
  * CSS for the game Asteroids.
  */
+
+.gameContainer {
+  border: 1px solid #000000;
+}
+
+#gameCanvas {
+  width: 50em;
+  margin: auto;
+  display: block;
+  padding: 1.25em;
+}

@@ -50,7 +50,6 @@ table {
   margin: 10px;
 }
 
-
 .about {
   display: inline-block;
 }
@@ -64,6 +63,7 @@ table {
   -o-transition: background 0.1s;
   transition: background 0.1s;
 }
+
 .about a:hover {
   text-decoration: none;
   background: #3dba86;
@@ -73,6 +73,7 @@ table {
 .about-links {
   height: 60px;
 }
+
 .about-links > a {
   float: left;
   width: 50%;
@@ -83,15 +84,18 @@ table {
 .about-author {
   margin-top: 5px;
 }
+
 .about-author > a {
   padding: 1px 3px;
   margin: 0 -1px;
 }
+
 #sitenameAdd h1{
   display: inline-block;
   width: 33%;
   text-align: center;
 }
+
 header {
   background-color: #539987;
   padding-top: 5px;
@@ -236,11 +240,11 @@ nav {
   color: black;
 }
 
-header h1 {
+h1 {
   font-family: 'VT323', monospace;
 }
 
-header h2 {
+h2 {
   font-family: 'Inconsolata', monospace;
 }
 
