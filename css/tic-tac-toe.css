@@ -1,68 +1,85 @@
 /**
-* @author Olga Osinskaya <ssinsk@yandex.ru>
-* 02/19/2018
-* Winter 2018
-* CSD 122 - JavaScript & jQuery
-* Group Project - Group 3 (Olga Osinskaya, Noah Greer, and Topher Gidos)
-*
-* CSS for the game Tic Tac Toe.
-*/
+ * @author Olga Osinskaya <ssinsk@yandex.ru>
+ * 02/19/2018
+ * Winter 2018
+ * CSD 122 - JavaScript & jQuery
+ * Group Project - Group 3 (Olga Osinskaya, Noah Greer, and Topher Gidos)
+ *
+ * CSS for the game Tic Tac Toe.
+ */
 
-#rules{
-  padding-left: 30px;
-  font-size: 1.5em;
-}
+ /*#rules{
 
-#boardWrapper {
+   font-size: 1.5em;
+ }
+ */
+ #boardWrapper {
   width: 360px;
   height: 400px;
   margin: auto;
-  margin-top: -300px;
   padding-bottom: 100px;
-}
-
+  padding-top: 20px;
+ }
 #rules h1{
-  padding-left: 50px;
+  padding-left: 30px;
 }
-
 #rules ul{
   list-style-type: square;
+  text-align: left;
 }
 
-input {
-  font-size: 60px;
+#facts{
+padding: 0px 10px 0px 10px;
+}
+.gamePic{
+  width: 207px;
+  height: 166px;
+  border: 0;
+  border-radius: 5px;
+}
+
+#myBody section{
+    width: 33%;
+      height: 33%;
+      display: inline-block;
+        vertical-align: top;
   text-align: center;
-  padding-top: 3px;
-  font-family: "Courier New";
-  /*text-transform: uppercase;*/
-  color: black;
+     font-size: 1.5em;
 }
+ input {
+   font-size: 60px;
+  text-align: center;
+   padding-top: 3px;
+   font-family: "Courier New";
+   /*text-transform: uppercase;*/
+   color: black;
+ }
 
-#box {
-  width: 110px;
+ #box {
+   width: 110px;
   height: 110px;
-  background: white;
-}
+   background: white;
+ }
 
-#message {
-  /*background: orange;*/
-  color: #FF9933;
-  font: 1.3em bold;
-  text-align: center;
+ #message {
+   /*background: orange;*/
+   color: #FF9933;
+   font: 1.3em bold;
+   text-align: center;
   cursor: pointer;
-}
+ }
 
 
-#reset {
-  background: #3dba86;
-  border: 1px solid black;
-  text-align: center;
-  font-size: 25px;
-  cursor: pointer;
-  color: black;
-  margin-top: 30px;
-}
+ #reset {
+   background: #3dba86;
+   border: 1px solid black;
+   text-align: center;
+   font-size: 25px;
+   cursor: pointer;
+   color: black;
+   margin-top: 30px;
+ }
 
-#reset:hover {
-  background: #303030;
-}
+ #reset:hover {
+   background: #303030;
+ }
