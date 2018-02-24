@@ -21,8 +21,8 @@ body {
   margin: auto;
   width: 80%;
   padding: 2px;
-  border: solid 1px white;
-  border-radius: 5px;
+  /* border: solid 1px white;
+  border-radius: 5px; */
 }
 
 ol, ul {
@@ -87,9 +87,26 @@ table {
   padding: 1px 3px;
   margin: 0 -1px;
 }
+.homePage{
+text-align: left;
+margin-left: -60px;
+font: black;
+}
+
+.homePage a:link {
+  color: black;
+}
+
+.homePage a:hover {
+  background-color: none;
+}
+.homePage a:visited {
+  color:  #800000;
+}
+
 #sitenameAdd h1{
   display: inline-block;
-  width: 33%;
+  width: 24%;
   text-align: center;
 }
 header {
@@ -257,6 +274,7 @@ footer {
 
 footer section {
   display: inline-block;
+
 }
 
 .icons {
