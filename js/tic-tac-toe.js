@@ -8,39 +8,34 @@
  * Code to play a game of Tic Tac Toe.
  */
 $(document).ready(function() {
-  var whoTurn = false;
-  $("#reset").text("Reset Board");
 
-  /*function processTurn(){
-   if($(".boxTwo").val()=="x"){
-     $(".boxThree").text("o");
-   }
- }
- */
-  var whoTurn;
+//whoTurn helps to keep track of users turns and changes from true to false with every turn
+var whoTurn = false;
+//var whoTurn;
+//Setting text content "Reset Board" for button <reset>
+$("#reset").text("Reset Board");
+
+//count helps designate correct error message when user does first turn
+var count=0;
+
   $("input").keyup(function() {
     var value = $(this)
       .val()
       .toUpperCase();
 
-    /* function random(){
-       var value = Math.floor(Math.random() * 9);
-       var one;
-       if (value==0)
-       one=".boxOne";
-       else
+//start counting when player does turns
+  if ($(this).val().toLowerCase() != "")
+  {
+    count+=1;
+  }
 
-
-
-       if($(".boxThree").val()== "")
-       one=".boxThree";
-       else
-       one=".boxTwo"
-       return one;
-     }
-*/
+//var message keeps Congratulations message
     var message = " Wins! Congratulations!";
+
+//var newGame keeps <New game> value for <reset> button
     var newGame = "New game";
+
+//check if user entered correct value o or x and x turns first
     if (
       ($(this)
         .val()
@@ -56,15 +51,20 @@ $(document).ready(function() {
           .val()
           .toLowerCase() == "x"
       )
+      //change value whoTurn
         whoTurn = true;
       else {
         whoTurn = false;
       }
+//setting new text color for current element
       $(this).css({ color: "#a31e1b" });
+//making box read only
       $(this).attr("readonly", true);
+//message box doexn't display text
       $("#message").html("");
-      /*$(random()).val("o");*/
-    } else if (
+    }
+
+    else if (
       ($(this)
         .val()
         .toLowerCase() == "x" &&
@@ -76,17 +76,30 @@ $(document).ready(function() {
     ) {
       $("#message").html("It's not your turn!");
       $(this).attr("value", "");
-    } else if (
-      $(this)
+    }
+
+
+    else if (
+      ($(this)
         .val()
         .toLowerCase() != "x" ||
       $(this)
         .val()
         .toLowerCase() != "o"
-    ) {
-      $("#message").html("Please enter only X or O");
+    )) {
+      if(count==1)
+      {
+      $("#message").html("Please enter X");
       $(this).attr("value", "");
+      }
+      else {
+        $("#message").html("Please enter only X or O");
+        $(this).attr("value", "");
+      }
     }
+
+
+    //check if all fields filled in and where is no winner combination
     if (
       $(".boxOne")
         .val()
@@ -116,6 +129,7 @@ $(document).ready(function() {
         .val()
         .toLowerCase() != ""
     ) {
+      //print correct message for draw and change <reset> button to <new game>
       $("#message").text("Result is Tie!");
       $("#reset").text(newGame);
     }
