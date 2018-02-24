@@ -13,7 +13,8 @@
 var canvas;
 var ctx;
 
-var position = new Vector2(0, 0);
+var position = new Vector2(100, 100);
+var rotation = 0;
 
 var ship = new Image();
 ship.src = "../img/icons/png/steam_4096_black.png";
@@ -31,12 +32,22 @@ $(document).ready(function() {
     // Log that we could not get a reference to the context.
     console.log("Could not get canvas context. Browser does not support HTML5 canvas.");
   }
+
+  var gameManager = {
+      canvas : $("#gameCanvas").get(0);
+      start : function() {
+          this.context = this.canvas.getContext("2d");
+      },
+      clear : function() {
+          this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      }
+  }
+
   }).keydown(function(e) {
     getInput(e);
   }).keyup(function(e) {
     getInput(e);
 });
-
 
 /*
 rotation formula:
@@ -47,21 +58,52 @@ y = x * Math.sin(theta) + y * Math.cos(theta)
 
 function update() {
   updateMovement();
-  ctx.rotate(0);
+  clearCanvas();
+  drawBackground();
+  drawPlayerShip();
+  requestAnimationFrame(update);
+}
+
+function clearCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function drawBackground() {
   ctx.fillStyle="#00BBFF";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(ship, position.x, position.y, 100, 100);
-  requestAnimationFrame(update);
+}
+
+function drawPlayerShip() {
+  var size = new Vector2(100, 100);
+  ctx.save();
+  ctx.translate(position.x, position.y);
+  ctx.rotate(rotation * (Math.PI / 180));
+  ctx.drawImage(ship, -size.x/2, -size.y/2, size.x, size.y);
+  ctx.restore();
 }
 
 function getInput(e) {
   if (e.type && (e.type === "keydown" || e.type === "keyup") && e.key) {
-    switch (e.key) {
-      case "ArrowUp":
-        controls.up = e.type === "keydown" ? true : false;
-        e.preventDefault();
-        break;
+    if (e.key === "ArrowUp") {
+      controls.up = e.type === "keydown" ? true : false;
+      e.preventDefault();
+    }
+    if (e.key === "ArrowDown") {
+      controls.down = e.type === "keydown" ? true : false;
+      e.preventDefault();
+    }
+    if (e.key === "ArrowLeft") {
+      controls.left = e.type === "keydown" ? true : false;
+      e.preventDefault();
+    }
+    if (e.key === "ArrowRight") {
+      controls.right = e.type === "keydown" ? true : false;
+      e.preventDefault();
+    }
+    if (e.key === " ") {
+      controls.space = e.type === "keydown" ? true : false;
+      e.preventDefault();
+    }
       case "ArrowDown":
         controls.down = e.type === "keydown" ? true : false;
         e.preventDefault();
@@ -78,8 +120,6 @@ function getInput(e) {
         controls.space = e.type === "keydown" ? true : false;
         e.preventDefault();
         break;
-      default:
-       break;
     }
   }
 }
@@ -93,10 +133,10 @@ function updateMovement() {
     position.y += speed;
   }
   if (controls.left) {
-    position.x -= speed;
+    rotation -= speed;
   }
   if (controls.right) {
-    position.x += speed;
+    rotation += speed;
   }
 }
 
