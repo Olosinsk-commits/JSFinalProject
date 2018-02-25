@@ -9,16 +9,17 @@ frog1.src = "../img/frogger/frogger1.png";
 	//variable for cars
 var car = new Image();
 car.src = "../img/frogger/cars.png";
-//variables for first car
+
 	//variables to allow all cars to move across the screen
 var carX1 = 100;
 var carSX1 = 0;
 		//variables for collision detection
 var carY1 = 400;
 //variables for second car
-var carX2 = 100;
+var carX2 = 500;
 var carSX2 = 60;
 var carY2 = 400;
+//
 var carWidth = 60;
 var carHeight = 35;
 	//variables for drawImage Method
@@ -155,18 +156,18 @@ function drawCars() {
 				carSX2 = (Math.floor(Math.random() * 4)) * 60;
 		  }
 }
-	//funtion that detects if the frog and car images are overlapping
+	//function that detects if the frog and car images are overlapping
 	function runOver () {
-		var carsX = [carX1, carX2]; 
+		var carsX = [carX1, carX2];
 		var carsY = [carY1, carY2];
 		for (i = 0; i < carsX.length; i++) {
-			if (carsX[i] <= x + width && 
-				carsY[i] + carWidth >= x && 
+			if (carsX[i] <= x + width &&
+				carsX[i] + carWidth >= x &&
 				carsY[i] + carHeight >= y &&
-		   		carsY[i] <= y + height){
+				carsY[i] <= y + height) {
 					y = 488;
+			}
 		}
-	}
 	}
 function draw() {
 	context.clearRect(0, 0, canvas.width, canvas.height); /*clears the previous iteration of the frog and redraws a new one.*/
