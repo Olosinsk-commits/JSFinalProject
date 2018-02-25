@@ -1,0 +1,23 @@
+.aboutUsTeam{
+  display: inline-block;
+  width: 33%;
+  text-align: center;
+
+}
+
+.aboutUs h1{text-align: center;}
+
+.pict {
+  width: 250px;
+  height: 250px;
+  border: 0;
+  border-radius: 5px;
+   border: 2px solid white;/*#73AD21;*/
+   background-color: #539987;
+}
+
+.aboutUs p{
+  width: 90%;
+  padding: 0px 10px 0px 10px;
+  font-size: 1.2em;
+}

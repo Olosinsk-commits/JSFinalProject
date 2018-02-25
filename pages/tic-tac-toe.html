@@ -17,7 +17,7 @@
   <meta name="keywords" content="showcase, project, games, group, jQuery, JavaScript">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Showcase Project</title>
-  <link href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Slab" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Inconsolata|VT323" rel="stylesheet">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <script src="../js/scripts.js"></script>
   <link rel="stylesheet" type="text/css" href="../css/styles.css">
@@ -26,81 +26,125 @@
 </head>
 
 <body>
-  <header>
-    <nav role="navigation">
-      <ul class="nav">
-        <li><a href="index.html" class="icon home"><span>Home</span></a></li>
-        <li class="dropdown">
-          <a href="index.html">Showcase</a>
-          <ul>
-            <li><a href="tic-tac-toe.html">TicTacToe</a></li>
-            <li><a href="asteroids.html">Asteroids</a></li>
-            <li><a href="frogger.html">Frogger</a></li>
-          </ul>
-        </li>
-        <li class="dropdown">
-          <a href="index.html">App Menu</a>
-          <ul class="large">
-            <li><a href="tic-tac-toe.html">TicTacToe</a></li>
-            <li><a href="asteroids.html">Asteroids</a></li>
-            <li><a href="frogger.html">Frogger</a></li>
-          </ul>
-        </li>
-        <li class="dropdown">
-          <a href="about.html">About</a>
-          <ul class="large">
-            <li><a href="about.html">Our Team</a></li>
-          </ul>
-        </li>
-      </ul>
-    </nav>
+  <header role="banner" id="sitenameAdd">
+        <h1 class="homePage"><a href="../index.html">GGGamersss</a></h1>
+    <h1 title="Sitename" id="sitename">Free online games!</h1>
+    <h1 title="Sitename" id="sitename">Take a break!</h1>
+    <h1 title="Sitename" id="sitename">Challenge yourself!</h1>
+    <!--<h2>A place for games.</h2>-->
   </header>
+  <nav role="navigation">
+    <ul class="nav">
+      <li><a href="../index.html">Showcase</a></li>
+      <li class="dropdown">
+        <span>App Menu</span>
+        <ul class="large">
+          <li><a href="tic-tac-toe.html">TicTacToe</a></li>
+          <li><a href="asteroids.html">Asteroids</a></li>
+          <li><a href="frogger.html">Frogger</a></li>
+        </ul>
+      </li>
+      <li>
+        <a href="about.html">About Our Team</a>
+      </li>
+    </ul>
+  </nav>
 
-  <h1>Tic Tac Toe</h1>
-  <section class="about">
+<section id="myBody">
+
+<section>
+<div id="rules">
+  <h1>Tic-Tac-Toe</h1>
+  <ul>
+    <li>This is a 2-player combinatorial game.</li>
+    <li>X moves first.</li>
+    <li>The game ends when
+     three-in-a-row<br> is obtained
+      or all fields filled.</li>
+    <li>A draw is obtained
+       whenever nobody wins.</li>
+  </ul>
+</div>
+</section>
+
+<section>
+  <div id="boardWrapper">
+
+      <div id="message"></div>
+      <br>
+      <div id="boxesWrapper">
+        <input type="text" id="box" class="boxOne"/>
+        <input type="text" id="box" class="boxTwo"/>
+        <input type="text" id="box" class="boxThree"/>
+        <input type="text" id="box" class="boxFour"/>
+        <input type="text" id="box" class="boxFive" />
+        <input type="text" id="box" class="boxSix" />
+        <input type="text" id="box" class="boxSeven" />
+        <input type="text" id="box" class="boxEight" />
+        <input type="text" id="box" class="boxNine" />
+     </div>
+     <div id="reset"></div>
+
+  </div>
+</section>
+
+<section>
+ <div id="facts">
+  <h1>Do you know?!</h1>
+  <p><strong>Tic Tac Toe</strong> was the first video game!</p>
+  <img src="../img/firstgame.jpg" alt="First Game" class="gamePic">
+  <p>In 1952, the EDSAC computer had a program called "OXO" which was a crude Tic-Tac-Toe game. This became the world's first video game. </p>
+ </div>
+</section>
+
+
+
+
+
+
+</section>
+
+<footer>
+  <b>Made by:</b>
+  <section>
+    <section class="footCopy">&nbsp;  Olga Osinskaya</section>
+    <span class="footIcons">
+      <a href="https://github.com/ssinsk" target="_blank">
+        <img src="../img/icons/svg/github.svg" alt="GitHub" class="icons">
+      </a>
+
+      <a href="https://www.linkedin.com/in/osinskaya/" target="_blank">
+        <img src="../img/icons/svg/linkedin.svg" alt="LinkedIn" class="icons">&nbsp;
+      </a>
+   </span>
   </section>
 
-  <footer>
-    <b>Made by:</b>
-    <section>
-      <section class="footCopy"> Olga Osinskaya</section>
-      <span class="footIcons">
-        <a href="https://github.com/ssinsk" target="_blank">
-          <img src="../img/icons/svg/github.svg" alt="GitHub" class="icons">
-        </a>
-
-        <a href="https://www.linkedin.com/in/osinskaya/" target="_blank">
-          <img src="../img/icons/svg/linkedin.svg" alt="LinkedIn" class="icons">
-        </a>
-     </span>
-    </section>
-
-    <section>
-      <section class="footCopy"> | Noah Greer</section>
-      <span class="footIcons">
-        <a href="https://github.com/NoahGreer" target="_blank">
-          <img src="../img/icons/svg/github.svg" alt="GitHub" class="icons">
-        </a>
-        <a href="https://www.linkedin.com/in/noah-greer-9a7b11101/" target="_blank">
-          <img src="../img/icons/svg/linkedin.svg" alt="LinkedIn" class="icons">
-        </a>
-      </span>
-    </section>
+  <section>
+    <section class="footCopy"> |&nbsp;  Noah Greer</section>
+    <span class="footIcons">
+      <a href="https://github.com/NoahGreer" target="_blank">
+        <img src="../img/icons/svg/github.svg" alt="GitHub" class="icons">
+      </a>
+      <a href="https://www.linkedin.com/in/noah-greer-9a7b11101/" target="_blank">
+        <img src="../img/icons/svg/linkedin.svg" alt="LinkedIn" class="icons">&nbsp;
+      </a>
+    </span>
+  </section>
 
     <section>
       <section class="footCopy"> | Topher Gidos</section>
       <span class="footIcons">
-        <a href="https://github.com/ssinsk" target="_blank">
+        <a href="https://github.com/tophgidos" target="_blank">
          <img src="../img/icons/svg/github.svg" alt="GitHub" class="icons">
         </a>
-        <a href="https://www.linkedin.com/in/osinskaya/" target="_blank">
+        <a href="https://www.linkedin.com/in/christopher-gidos-aa1423106/" target="_blank">
          <img src="../img/icons/svg/linkedin.svg" alt="LinkedIn" class="icons">
         </a>
         <section class="copy">&copy; <script>document.write(new Date().getFullYear())</script></section>
       </span>
     </section>
 
-  </footer>
+</footer>
 
 </body>
 
