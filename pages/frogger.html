@@ -26,26 +26,23 @@
 </head>
 
 <body>
-  <header role="banner" id="sitenameAdd">
-    <h1 title="Sitename" id="sitename">Free online games!</h1>
-    <h1 title="Sitename" id="sitename">Take a break!</h1>
-    <h1 title="Sitename" id="sitename">Challenge yourself!</h1>
-    <!--<h2>A place for games.</h2>-->
+  <header role="banner">
+    <h1>Free online games!</h1>
+    <h1>Take a break!</h1>
+    <h1>Challenge yourself!</h1>
   </header>
   <nav role="navigation">
-    <ul class="nav">
+    <ul>
       <li><a href="../index.html">Showcase</a></li>
       <li class="dropdown">
-        <span>App Menu</span>
-        <ul class="large">
-          <li><a href="tic-tac-toe.html">TicTacToe</a></li>
-          <li><a href="asteroids.html">Asteroids</a></li>
-          <li><a href="frogger.html">Frogger</a></li>
-        </ul>
+        <span class="dropbtn">App Menu</span>
+        <div class="dropdown-content">
+          <a href="tic-tac-toe.html">TicTacToe</a>
+          <a href="asteroids.html">Asteroids</a>
+          <a class="active" href="frogger.html">Frogger</a>
+        </div>
       </li>
-      <li>
-        <a href="about.html">About Our Team</a>
-      </li>
+      <li><a href="about.html">About Our Team</a></li>
     </ul>
   </nav>
 
@@ -54,45 +51,27 @@
   </section>
 
   <footer>
-    <b>Made by:</b>
-    <section>
-      <section class="footCopy">&nbsp;  Olga Osinskaya</section>
-      <span class="footIcons">
-        <a href="https://github.com/ssinsk" target="_blank">
-          <img src="../img/icons/svg/github.svg" alt="GitHub" class="icons">
-        </a>
-
-        <a href="https://www.linkedin.com/in/osinskaya/" target="_blank">
-          <img src="../img/icons/svg/linkedin.svg" alt="LinkedIn" class="icons">&nbsp;
-        </a>
-     </span>
+    <section class="authors">
+      <p>Made by:</p>
+      <section class="author">
+        <p>Olga Osinskaya
+        <a href="https://github.com/ssinsk" target="_blank"><img src="../img/icons/svg/github.svg" alt="GitHub" class="icon"></a>
+        <a href="https://www.linkedin.com/in/osinskaya/" target="_blank"><img src="../img/icons/svg/linkedin.svg" alt="LinkedIn" class="icon"></a></p>
+      </section>
+      <span class="wideSeparator">|</span>
+      <section class="author">
+        <p>Noah Greer
+        <a href="https://github.com/NoahGreer" target="_blank"><img src="../img/icons/svg/github.svg" alt="GitHub" class="icon"></a>
+        <a href="https://www.linkedin.com/in/noah-greer-9a7b11101/" target="_blank"><img src="../img/icons/svg/linkedin.svg" alt="LinkedIn" class="icon"></a></p>
+      </section>
+      <span class="wideSeparator">|</span>
+      <section class="author">
+        <p>Topher Gidos
+        <a href="https://github.com/tophgidos" target="_blank"><img src="../img/icons/svg/github.svg" alt="GitHub" class="icon"></a>
+        <a href="https://www.linkedin.com/in/christopher-gidos-aa1423106/" target="_blank"><img src="../img/icons/svg/linkedin.svg" alt="LinkedIn" class="icon"></a></p>
+      </section>
     </section>
-
-    <section>
-      <section class="footCopy"> |&nbsp;  Noah Greer</section>
-      <span class="footIcons">
-        <a href="https://github.com/NoahGreer" target="_blank">
-          <img src="../img/icons/svg/github.svg" alt="GitHub" class="icons">
-        </a>
-        <a href="https://www.linkedin.com/in/noah-greer-9a7b11101/" target="_blank">
-          <img src="../img/icons/svg/linkedin.svg" alt="LinkedIn" class="icons">&nbsp;
-        </a>
-      </span>
-    </section>
-
-    <section>
-      <section class="footCopy"> |&nbsp;  Topher Gidos</section>
-      <span class="footIcons">
-        <a href="https://github.com/tophgidos" target="_blank">
-         <img src="../img/icons/svg/github.svg" alt="GitHub" class="icons">
-        </a>
-        <a href="https://www.linkedin.com/in/christopher-gidos-aa1423106/" target="_blank">
-         <img src="../img/icons/svg/linkedin.svg" alt="LinkedIn" class="icons">
-        </a>
-        <section class="copy">&copy; <script>document.write(new Date().getFullYear())</script></section>
-      </span>
-    </section>
-
+    <section class="copy">&copy; <script>document.write(new Date().getFullYear())</script></section>
   </footer>
 
 </body>
