@@ -5,27 +5,36 @@ var canvas = document.getElementById('canvas');
 var context = canvas.getContext('2d');
 	//variable for frog sprite
 var frog1 = new Image();
-<<<<<<< HEAD
-frog1.src = "images/frogger1.png";
+
+
+
+frog1.src = "img/frogger1.png";
 	//variable for cars
 var car = new Image();
-car.src = "images/cars.png";
-=======
+car.src = "img/cars.png";
+
 frog1.src = "../img/frogger/frogger1.png";
 	//variable for cars
 var car = new Image();
 car.src = "../img/frogger/cars.png";
->>>>>>> frogger.js
+
 //variables for first car
+
 	//variables to allow all cars to move across the screen
 var carX1 = 100;
 var carSX1 = 0;
 		//variables for collision detection
 var carY1 = 400;
 //variables for second car
+
+var carX2 = 500;
+var carSX2 = 60;
+var carY2 = 400;
+//
 var carX2 = 100;
 var carSX2 = 60;
 var carY2 = 400;
+
 var carWidth = 60;
 var carHeight = 35;
 	//variables for drawImage Method
