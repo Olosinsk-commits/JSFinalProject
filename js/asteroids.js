@@ -29,11 +29,11 @@ var gameManager = {
         // Check whether canvas is available in the browser.
         if (this.canvas.getContext) {
           this.ctx = this.canvas.getContext('2d');
-          this.playerShip = new GameObject(new Vector2(10, 10), // position
+          this.playerShip = new GameObject(new Vector2(100, 100), // position
                                            new Vector2(100, 100), // scale
                                            new Vector2(0, 0), // velocity
                                            new Vector2(0, 0), // acceleration
-                                           new Vector2(0, 1), // direction
+                                           Vector2.up, // direction
                                            1); // collisionRadius
           requestAnimationFrame(update);
         } else {
@@ -49,6 +49,7 @@ function update() {
   clearCanvas();
   drawBackground();
   drawPlayerShip();
+  drawVector();
   drawHealth();
   drawScore();
   requestAnimationFrame(update);
@@ -81,10 +82,23 @@ function drawScore() {
   gameManager.ctx.fillText(scoreText, gameManager.canvas.width - 2, 30);
 }
 
+function drawVector() {
+  gameManager.ctx.save();
+  gameManager.ctx.beginPath();
+  gameManager.ctx.moveTo(gameManager.playerShip.position.x, gameManager.playerShip.position.y);
+  gameManager.ctx.lineTo(gameManager.playerShip.position.x + gameManager.playerShip.direction.x * 30,
+                         gameManager.playerShip.position.y + gameManager.playerShip.direction.y * 30);
+  gameManager.ctx.lineWidth = 2;
+  gameManager.ctx.strokeStyle = '#000000';
+  gameManager.ctx.stroke();
+  gameManager.ctx.restore();
+}
+
 function drawPlayerShip() {
   gameManager.ctx.save();
   gameManager.ctx.translate(gameManager.playerShip.position.x, gameManager.playerShip.position.y);
   let angle = Vector2.angleBetween(Vector2.down, gameManager.playerShip.direction);
+  console.log("drawPlayerShip: angle = " + angle * 180 / Math.PI);
   gameManager.ctx.rotate(angle);
   gameManager.ctx.drawImage(shipAvatar, -gameManager.playerShip.scale.x/2, -gameManager.playerShip.scale.y/2, gameManager.playerShip.scale.x, gameManager.playerShip.scale.y);
   gameManager.ctx.restore();
@@ -165,10 +179,6 @@ Vector2.left = new Vector2(-1, 0);
 Vector2.right = new Vector2(1, 0);
 Vector2.up = new Vector2(0, 1);
 
-Vector2.add = function(v1, v2) {
-  return new Vector2(v1.x + v2.x, v1.y + v2.y);
-}
-
 Vector2.angleBetween = function (fromV, toV) {
   // *** BEGIN INPUT VALIDATION ***
   // If no input was received for the 'fromV' parameter.
@@ -183,34 +193,38 @@ Vector2.angleBetween = function (fromV, toV) {
 
   let dotProduct = fromV.x * toV.x + fromV.y * toV.y;
   let length = fromV.magnitude() * toV.magnitude();
-  let angle = Math.acos(dotProduct/length);
+  let ratio = dotProduct/length;
+  console.log("ratio = " + ratio);
+  ratio = Math.max(-1, Math.min(ratio, 1));
+  console.log("ratio = " + ratio);
+  let angle = Math.acos(ratio);
   return angle;
 }
 
 // Adds another vector to this vector.
-Vector2.prototype.add = function (otherVector2) {
+Vector2.prototype.add = function (otherVector) {
   // *** BEGIN INPUT VALIDATION ***
   // If no input was received for the 'position' parameter.
-  if (otherVector2 === undefined) throw "The 'otherVector2' parameter is required!";
-  // If the 'otherVector2' parameter is not a Vector2.
-  if (!otherVector2 instanceof Vector2) throw "The 'otherVector2' parameter must be a Vector2 object.";
+  if (otherVector === undefined) throw "The 'otherVector' parameter is required!";
+  // If the 'otherVector' parameter is not a Vector2.
+  if (!otherVector instanceof Vector2) throw "The 'otherVector' parameter must be a Vector2 object.";
   // *** END INPUT VALIDATION ***
 
-  this.x = this.x + otherVector2.x;
-  this.y = this.y + otherVector2.y;
+  this.x = this.x + otherVector.x;
+  this.y = this.y + otherVector.y;
 }
 
 // Subtracts another vector from this vector.
-Vector2.prototype.subtract = function (otherVector2) {
+Vector2.prototype.subtract = function (otherVector) {
   // *** BEGIN INPUT VALIDATION ***
   // If no input was received for the 'position' parameter.
-  if (otherVector2 === undefined) throw "The 'otherVector2' parameter is required!";
-  // If the 'otherVector2' parameter is not a Vector2.
-  if (!otherVector2 instanceof Vector2) throw "The 'otherVector2' parameter must be a Vector2 object.";
+  if (otherVector === undefined) throw "The 'otherVector' parameter is required!";
+  // If the 'otherVector' parameter is not a Vector2.
+  if (!otherVector instanceof Vector2) throw "The 'otherVector' parameter must be a Vector2 object.";
   // *** END INPUT VALIDATION ***
 
-  this.x = this.x - otherVector2.x;
-  this.y = this.y - otherVector2.y;
+  this.x = this.x - otherVector.x;
+  this.y = this.y - otherVector.y;
 }
 
 /**
