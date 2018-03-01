@@ -8,9 +8,6 @@
  * Code to play a game of Asteroids.
  */
 
-var shipAvatar = new Image();
-shipAvatar.src = "../img/icons/png/steam_4096_black.png";
-
 var controls = {"up": false, "down": false, "left": false, "right": false, "space": false};
 
 $(document).ready(function() {
@@ -33,7 +30,7 @@ var gameManager = {
                                            new Vector2(100, 100), // scale
                                            new Vector2(0, 0), // velocity
                                            new Vector2(0, 0), // acceleration
-                                           Vector2.up, // direction
+                                           Vector2.up(), // direction
                                            1); // collisionRadius
           requestAnimationFrame(update);
         } else {
@@ -48,7 +45,7 @@ function update() {
   gameManager.playerShip.update();
   clearCanvas();
   drawBackground();
-  drawPlayerShip();
+  drawPlayerShip(gameManager.playerShip);
   drawVector();
   drawHealth();
   drawScore();
@@ -94,13 +91,28 @@ function drawVector() {
   gameManager.ctx.restore();
 }
 
-function drawPlayerShip() {
+function drawPlayerShip(ship) {
+  // *** BEGIN INPUT VALIDATION ***
+  // If no input was received for the 'ship' parameter.
+  if (ship === undefined) throw "The 'ship' parameter is required!";
+  // If the 'ship' parameter is not a number.
+  if (!ship instanceof GameObject) throw "The 'ship' parameter must be a GameObject.";
+  // *** END INPUT VALIDATION ***
+  let shipWidth = 10;
+  let shipHeight = 20;
   gameManager.ctx.save();
-  gameManager.ctx.translate(gameManager.playerShip.position.x, gameManager.playerShip.position.y);
-  let angle = Vector2.angleBetween(Vector2.down, gameManager.playerShip.direction);
-  console.log("drawPlayerShip: angle = " + angle * 180 / Math.PI);
+  gameManager.ctx.translate(ship.position.x, ship.position.y);
+  let angle = Vector2.angleBetween(Vector2.up(), ship.direction);
   gameManager.ctx.rotate(angle);
-  gameManager.ctx.drawImage(shipAvatar, -gameManager.playerShip.scale.x/2, -gameManager.playerShip.scale.y/2, gameManager.playerShip.scale.x, gameManager.playerShip.scale.y);
+  gameManager.ctx.beginPath();
+  gameManager.ctx.moveTo(ship.direction.x, ship.direction.y-shipHeight);
+  gameManager.ctx.lineTo(shipWidth, shipHeight);
+  gameManager.ctx.lineTo(0, shipWidth);
+  gameManager.ctx.lineTo(-shipWidth, shipHeight);
+  gameManager.ctx.lineTo(0, -shipHeight);
+  gameManager.ctx.lineWidth = 3;
+  gameManager.ctx.strokeStyle = '#FF0000';
+  gameManager.ctx.stroke();
   gameManager.ctx.restore();
 }
 
@@ -130,10 +142,10 @@ function getInput(e) {
 }
 
 function updateMovement() {
-  let acceleration = 2;
-  let rotationAngle = 2 * (Math.PI / 180);
+  let acceleration = 3;
+  let rotationAngle = 3 * (Math.PI / 180);
   if (controls.up) {
-    gameManager.playerShip.acceleration.add(gameManager.playerShip.direction);
+    gameManager.playerShip.acceleration.add(Vector2.multiply(gameManager.playerShip.direction, acceleration));
   }
   if (controls.down) {
     // do nothing.
@@ -168,16 +180,23 @@ function Vector2(x, y) {
   // Set the new GameObject's properties.
   this.x = x;
   this.y = y;
-
-  // Log that the new GameObject was created sucessfully.
-  console.log("Created new Vector2: (x: " + this.x +
-                                  ", y: " + this.y + ")");
 }
 
-Vector2.down = new Vector2(0, -1);
-Vector2.left = new Vector2(-1, 0);
-Vector2.right = new Vector2(1, 0);
-Vector2.up = new Vector2(0, 1);
+Vector2.down = function () {
+  return new Vector2(0, 1);
+}
+
+Vector2.left = function () {
+  return new Vector2(-1, 0);
+}
+
+Vector2.right = function () {
+  return new Vector2(1, 0);
+}
+
+Vector2.up = function () {
+  return new Vector2(0, -1);
+}
 
 Vector2.angleBetween = function (fromV, toV) {
   // *** BEGIN INPUT VALIDATION ***
@@ -191,14 +210,31 @@ Vector2.angleBetween = function (fromV, toV) {
   if (!toV instanceof Vector2) throw "The 'toV' parameter must be a Vector2 object.";
   // *** END INPUT VALIDATION ***
 
-  let dotProduct = fromV.x * toV.x + fromV.y * toV.y;
-  let length = fromV.magnitude() * toV.magnitude();
-  let ratio = dotProduct/length;
-  console.log("ratio = " + ratio);
-  ratio = Math.max(-1, Math.min(ratio, 1));
-  console.log("ratio = " + ratio);
-  let angle = Math.acos(ratio);
+  let dot = fromV.x * toV.x + fromV.y * toV.y;
+  let det = fromV.x * toV.y - fromV.y * toV.x;
+  let angle = Math.atan2(det, dot);
   return angle;
+}
+
+/**
+ * Multiplies a vector's components by a scalar value.
+ * @param {Vector2} vector The vector to be multiplied.
+ * @param {number} scalar The scalar to multiply the vector by.
+ * @return {Vector2} The new scaled vector.
+ */
+Vector2.multiply = function (vector, scalar) {
+  // *** BEGIN INPUT VALIDATION ***
+  // If no input was received for the 'vector' parameter.
+  if (vector === undefined) throw "The 'vector' parameter is required!";
+  // If the 'vector' parameter is not a Vector2.
+  if (!vector instanceof Vector2) throw "The 'vector' parameter must be a Vector2 object.";
+  // If no input was received for the 'scalar' parameter.
+  if (scalar === undefined) throw "The 'scalar' parameter is required!";
+  // If the 'scalar' parameter is not a number.
+  if (typeof scalar !== 'number') throw "The 'scalar' parameter must be a number.";
+  // *** END INPUT VALIDATION ***
+
+  return new Vector2 (vector.x * scalar, vector.y * scalar);
 }
 
 // Adds another vector to this vector.
@@ -229,6 +265,7 @@ Vector2.prototype.subtract = function (otherVector) {
 
 /**
  * Multiplies this vector's components by a scalar value.
+ * @param {Vector2} vector The vector to be multiplied.
  * @param {number}
  */
 Vector2.prototype.multiply = function (scalar) {
@@ -363,6 +400,19 @@ function GameObject(position, scale, velocity, acceleration, direction, collisio
 
 GameObject.prototype.update = function () {
   this.velocity.add(this.acceleration);
-  this.velocity.clampMagnitude(5);
+  this.velocity.clampMagnitude(3);
   this.position.add(this.velocity);
+
+  if (this.position.x > gameCanvas.width) {
+    this.position.x = 0;
+  }
+  if (this.position.x < 0) {
+    this.position.x = gameCanvas.width;
+  }
+  if (this.position.y > gameCanvas.height) {
+    this.position.y = 0;
+  }
+  if (this.position.y < 0) {
+    this.position.y = gameCanvas.height;
+  }
 };
