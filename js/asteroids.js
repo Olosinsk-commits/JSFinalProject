@@ -22,13 +22,13 @@ var gameManager = {
         // Check whether canvas is available in the browser.
         if (this.canvas.getContext) {
           this.ctx = this.canvas.getContext('2d');
-          this.playerShip = new GameObject(new Vector2(100, 100), // position
-                                           new Vector2(100, 100), // scale
+          this.playerShip = new GameObject(new Vector2(this.canvas.width/2, this.canvas.height/2), // position
                                            new Vector2(0, 0), // velocity
                                            new Vector2(0, 0), // acceleration
                                            Vector2.up(), // direction
                                            1); // collisionRadius
-        this.controls = {space: false, left: false, up: false, right: false, down: false};
+          this.controls = {space: false, left: false, up: false, right: false, down: false};
+          this.gameObjects = [];
           requestAnimationFrame(update);
           $(window).keydown(function(e) {
             getInput(e);
@@ -43,12 +43,18 @@ var gameManager = {
 }
 
 function update() {
-  updateMovement();
+  handleInput();
   gameManager.playerShip.update();
   clearCanvas();
   drawBackground();
   drawPlayerShip(gameManager.playerShip);
-  drawVector();
+
+  for (go of gameManager.gameObjects) {
+    go.update();
+    drawProjectile(go);
+  }
+  
+  //drawVector(gameManager.playerShip.direction);
   drawHealth();
   drawScore();
   requestAnimationFrame(update);
@@ -59,36 +65,57 @@ function clearCanvas() {
 }
 
 function drawBackground() {
-  gameManager.ctx.fillStyle="#00BBFF";
+  gameManager.ctx.fillStyle="#000000";
   gameManager.ctx.fillRect(0, 0, gameManager.canvas.width, gameManager.canvas.height);
 }
 
 function drawHealth() {
-  gameManager.ctx.font = "30px Arial";
-  gameManager.ctx.fillStyle = "#000000";
+  let fontSize = 20;
+  gameManager.ctx.font = fontSize + "px Arial";
+  gameManager.ctx.fillStyle = "#FFFFFF";
   gameManager.ctx.textAlign = "left";
   let health = 100;
   let healthText = "Health: " + health;
-  gameManager.ctx.fillText(healthText, 2, 30);
+  gameManager.ctx.fillText(healthText, 2, fontSize);
 }
 
 function drawScore() {
-  gameManager.ctx.font = "30px Arial";
-  gameManager.ctx.fillStyle = "#000000";
+  let fontSize = 20;
+  gameManager.ctx.font = fontSize + "px Arial";
+  gameManager.ctx.fillStyle = "#FFFFFF";
   gameManager.ctx.textAlign = "right";
   let score = 100;
   let scoreText = "Score: " + score;
-  gameManager.ctx.fillText(scoreText, gameManager.canvas.width - 2, 30);
+  gameManager.ctx.fillText(scoreText, gameManager.canvas.width - 2, fontSize);
 }
 
-function drawVector() {
+function drawProjectile(projectile) {
+  // *** BEGIN INPUT VALIDATION ***
+  // If no input was received for the 'projectile' parameter.
+  if (projectile === undefined) throw "The 'projectile' parameter is required!";
+  // If the 'projectile' parameter is not a number.
+  if (!projectile instanceof GameObject) throw "The 'projectile' parameter must be a GameObject.";
+  // *** END INPUT VALIDATION ***
+
+  gameManager.ctx.save();
+  gameManager.ctx.beginPath();
+  gameManager.ctx.moveTo(projectile.position.x, projectile.position.y);
+  gameManager.ctx.lineTo(projectile.position.x + projectile.direction.x * 30,
+                         projectile.position.y + projectile.direction.y * 30);
+  gameManager.ctx.lineWidth = 2;
+  gameManager.ctx.strokeStyle = '#FFFFFF';
+  gameManager.ctx.stroke();
+  gameManager.ctx.restore();
+}
+
+function drawVector(vector) {
   gameManager.ctx.save();
   gameManager.ctx.beginPath();
   gameManager.ctx.moveTo(gameManager.playerShip.position.x, gameManager.playerShip.position.y);
-  gameManager.ctx.lineTo(gameManager.playerShip.position.x + gameManager.playerShip.direction.x * 30,
-                         gameManager.playerShip.position.y + gameManager.playerShip.direction.y * 30);
+  gameManager.ctx.lineTo(gameManager.playerShip.position.x + vector.x * 30,
+                         gameManager.playerShip.position.y + vector.y * 30);
   gameManager.ctx.lineWidth = 2;
-  gameManager.ctx.strokeStyle = '#000000';
+  gameManager.ctx.strokeStyle = '#FFFFFF';
   gameManager.ctx.stroke();
   gameManager.ctx.restore();
 }
@@ -113,7 +140,7 @@ function drawPlayerShip(ship) {
   gameManager.ctx.lineTo(-shipWidth, shipHeight);
   gameManager.ctx.lineTo(0, -shipHeight);
   gameManager.ctx.lineWidth = 3;
-  gameManager.ctx.strokeStyle = '#FF0000';
+  gameManager.ctx.strokeStyle = '#FFFFFF';
   gameManager.ctx.stroke();
   gameManager.ctx.restore();
 }
@@ -143,7 +170,7 @@ function getInput(e) {
   }
 }
 
-function updateMovement() {
+function handleInput() {
   let acceleration = 3;
   let rotationAngle = 3 * (Math.PI / 180);
   if (gameManager.controls.up) {
@@ -157,6 +184,16 @@ function updateMovement() {
   }
   if (gameManager.controls.right) {
     gameManager.playerShip.direction.rotate(rotationAngle);
+  }
+  if (gameManager.controls.space) {
+    let projectileVelocity = 3;
+    gameManager.gameObjects.push(new GameObject(Vector2.add(gameManager.playerShip.position, gameManager.playerShip.direction), // position
+                                                Vector2.multiply(gameManager.playerShip.direction, projectileVelocity), // velocity
+                                                new Vector2(0, 0), // acceleration
+                                                new Vector2(gameManager.playerShip.direction.x, gameManager.playerShip.direction.y), // direction
+                                                1) // collisionRadius
+
+    );
   }
 }
 
@@ -200,6 +237,11 @@ Vector2.up = function () {
   return new Vector2(0, -1);
 }
 
+/**
+ * Calculates the whole clockwise angle (0-2PI / 0-360) between two vectors.
+ * @param {Vector2} fromV The vector to calculate the angle from.
+ * @param {Vector2} toV The vector to calculate the angle to.
+ */
 Vector2.angleBetween = function (fromV, toV) {
   // *** BEGIN INPUT VALIDATION ***
   // If no input was received for the 'fromV' parameter.
@@ -237,6 +279,27 @@ Vector2.multiply = function (vector, scalar) {
   // *** END INPUT VALIDATION ***
 
   return new Vector2 (vector.x * scalar, vector.y * scalar);
+}
+
+/**
+ * Multiplies a vector's components by a scalar value.
+ * @param {Vector2} vectorA The first vector to be added.
+ * @param {Vector2} vectorB The second vector to be added.
+ * @return {Vector2} The new vector with the sum of the components of the inputs.
+ */
+Vector2.add = function (vectorA, vectorB) {
+  // *** BEGIN INPUT VALIDATION ***
+  // If no input was received for the 'vectorA' parameter.
+  if (vectorA === undefined) throw "The 'vectorA' parameter is required!";
+  // If the 'vectorA' parameter is not a Vector2.
+  if (!vectorA instanceof Vector2) throw "The 'vectorA' parameter must be a Vector2 object.";
+  // If no input was received for the 'vectorB' parameter.
+  if (vectorB === undefined) throw "The 'vectorB' parameter is required!";
+  // If the 'vectorB' parameter is not a Vector2.
+  if (!vectorB instanceof Vector2) throw "The 'vectorB' parameter must be a Vector2 object.";
+  // *** END INPUT VALIDATION ***
+
+  return new Vector2 (vectorA.x + vectorB.x, vectorA.y + vectorB.y);
 }
 
 // Adds another vector to this vector.
@@ -299,7 +362,7 @@ Vector2.prototype.divide = function (scalar) {
 }
 
 /**
- * Rotates this vector by an angle value.
+ * Rotates this vector by an angle (radian) value.
  * @param {number}
  */
 Vector2.prototype.rotate = function (angle) {
@@ -346,23 +409,18 @@ Vector2.prototype.clampMagnitude = function (newMagnitude) {
  * Creates an instance of a GameObject.
  * @constructor
  * @param {Vector2} position The GameObject's position vector.
- * @param {Vector2} scale The GameObject's scale vector.
  * @param {Vector2} velocity The GameObject's velocity vector.
  * @param {Vector2} acceleration The GameObject's acceleration vector.
  * @param {Vector2} direction The GameObject's direction vector.
  * @param {number} collisionRadius The GameObject's collisionRadius.
  * @return {GameObject} The new GameObject object.
  */
-function GameObject(position, scale, velocity, acceleration, direction, collisionRadius) {
+function GameObject(position, velocity, acceleration, direction, collisionRadius) {
   // *** BEGIN INPUT VALIDATION ***
   // If no input was received for the 'position' parameter.
   if (position === undefined) throw "The 'position' parameter is required!";
   // If the 'position' parameter is not a Vector2.
   if (!position instanceof Vector2) throw "The 'position' parameter must be a Vector2 object.";
-  // If no input was received for the 'scale' parameter.
-  if (scale === undefined) throw "The 'scale' parameter is required!";
-  // If the 'scale' parameter is not a Vector2.
-  if (!scale instanceof Vector2) throw "The 'scale' parameter must be a Vector2 object.";
   // If no input was received for the 'velocity' parameter.
   if (velocity === undefined) throw "The 'velocity' parameter is required!";
   // If the 'velocity' parameter is not a Vector2.
@@ -385,7 +443,6 @@ function GameObject(position, scale, velocity, acceleration, direction, collisio
 
   // Set the new GameObject's properties.
   this.position = position;
-  this.scale = scale;
   this.velocity = velocity;
   this.acceleration = acceleration;
   this.direction = direction;
@@ -396,7 +453,7 @@ function GameObject(position, scale, velocity, acceleration, direction, collisio
                                        ", scale: " + this.scale +
                                     ", velocity: " + this.velocity +
                                 ", acceleration: " + this.acceleration +
-                                    ", direction: " + this.direction +
+                                   ", direction: " + this.direction +
                              ", collisionRadius: " + this.collisionRadius);
 }
 
