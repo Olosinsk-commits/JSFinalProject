@@ -11,6 +11,11 @@
 const keyCodes = {space: 32, left: 37, up: 38, right: 39, down: 40};
 
 $(document).ready(function() {
+    $(window).keydown(function(e) {
+      getInput(e);
+    }).keyup(function(e) {
+      getInput(e);
+    });
     gameManager.start();
   });
 
@@ -22,19 +27,14 @@ var gameManager = {
         // Check whether canvas is available in the browser.
         if (this.canvas.getContext) {
           this.ctx = this.canvas.getContext('2d');
-          this.playerShip = new GameObject(new Vector2(this.canvas.width/2, this.canvas.height/2), // position
+          this.playerShip = new PlayerShip(new Vector2(this.canvas.width/2, this.canvas.height/2), // position
+                                           Vector2.up(), // direction
                                            new Vector2(0, 0), // velocity
                                            new Vector2(0, 0), // acceleration
-                                           Vector2.up(), // direction
                                            1); // collisionRadius
           this.controls = {space: false, left: false, up: false, right: false, down: false};
-          this.gameObjects = [];
+          this.gameObjects = [this.playerShip];
           requestAnimationFrame(update);
-          $(window).keydown(function(e) {
-            getInput(e);
-          }).keyup(function(e) {
-            getInput(e);
-          });
         } else {
           // Log that we could not get a reference to the context.
           console.log("Could not get canvas context. Browser does not support HTML5 canvas.");
@@ -44,16 +44,12 @@ var gameManager = {
 
 function update() {
   handleInput();
-  gameManager.playerShip.update();
   clearCanvas();
   drawBackground();
-  drawPlayerShip(gameManager.playerShip);
-
   for (go of gameManager.gameObjects) {
     go.update();
-    drawProjectile(go);
+    go.draw();
   }
-  
   //drawVector(gameManager.playerShip.direction);
   drawHealth();
   drawScore();
@@ -89,25 +85,6 @@ function drawScore() {
   gameManager.ctx.fillText(scoreText, gameManager.canvas.width - 2, fontSize);
 }
 
-function drawProjectile(projectile) {
-  // *** BEGIN INPUT VALIDATION ***
-  // If no input was received for the 'projectile' parameter.
-  if (projectile === undefined) throw "The 'projectile' parameter is required!";
-  // If the 'projectile' parameter is not a number.
-  if (!projectile instanceof GameObject) throw "The 'projectile' parameter must be a GameObject.";
-  // *** END INPUT VALIDATION ***
-
-  gameManager.ctx.save();
-  gameManager.ctx.beginPath();
-  gameManager.ctx.moveTo(projectile.position.x, projectile.position.y);
-  gameManager.ctx.lineTo(projectile.position.x + projectile.direction.x * 30,
-                         projectile.position.y + projectile.direction.y * 30);
-  gameManager.ctx.lineWidth = 2;
-  gameManager.ctx.strokeStyle = '#FFFFFF';
-  gameManager.ctx.stroke();
-  gameManager.ctx.restore();
-}
-
 function drawVector(vector) {
   gameManager.ctx.save();
   gameManager.ctx.beginPath();
@@ -115,31 +92,6 @@ function drawVector(vector) {
   gameManager.ctx.lineTo(gameManager.playerShip.position.x + vector.x * 30,
                          gameManager.playerShip.position.y + vector.y * 30);
   gameManager.ctx.lineWidth = 2;
-  gameManager.ctx.strokeStyle = '#FFFFFF';
-  gameManager.ctx.stroke();
-  gameManager.ctx.restore();
-}
-
-function drawPlayerShip(ship) {
-  // *** BEGIN INPUT VALIDATION ***
-  // If no input was received for the 'ship' parameter.
-  if (ship === undefined) throw "The 'ship' parameter is required!";
-  // If the 'ship' parameter is not a number.
-  if (!ship instanceof GameObject) throw "The 'ship' parameter must be a GameObject.";
-  // *** END INPUT VALIDATION ***
-  let shipWidth = 10;
-  let shipHeight = 20;
-  gameManager.ctx.save();
-  gameManager.ctx.translate(ship.position.x, ship.position.y);
-  let angle = Vector2.angleBetween(Vector2.up(), ship.direction);
-  gameManager.ctx.rotate(angle);
-  gameManager.ctx.beginPath();
-  gameManager.ctx.moveTo(ship.direction.x, ship.direction.y-shipHeight);
-  gameManager.ctx.lineTo(shipWidth, shipHeight);
-  gameManager.ctx.lineTo(0, shipWidth);
-  gameManager.ctx.lineTo(-shipWidth, shipHeight);
-  gameManager.ctx.lineTo(0, -shipHeight);
-  gameManager.ctx.lineWidth = 3;
   gameManager.ctx.strokeStyle = '#FFFFFF';
   gameManager.ctx.stroke();
   gameManager.ctx.restore();
@@ -176,9 +128,11 @@ function handleInput() {
   if (gameManager.controls.up) {
     gameManager.playerShip.acceleration.add(Vector2.multiply(gameManager.playerShip.direction, acceleration));
   }
+  /*
   if (gameManager.controls.down) {
     // do nothing.
   }
+  */
   if (gameManager.controls.left) {
     gameManager.playerShip.direction.rotate(-rotationAngle);
   }
@@ -187,13 +141,12 @@ function handleInput() {
   }
   if (gameManager.controls.space) {
     let projectileVelocity = 3;
-    gameManager.gameObjects.push(new GameObject(Vector2.add(gameManager.playerShip.position, gameManager.playerShip.direction), // position
+    let proj = new Projectile(Vector2.add(gameManager.playerShip.position, Vector2.multiply(gameManager.playerShip.direction, 10)), // position
+                                                new Vector2(gameManager.playerShip.direction.x, gameManager.playerShip.direction.y), // direction
                                                 Vector2.multiply(gameManager.playerShip.direction, projectileVelocity), // velocity
                                                 new Vector2(0, 0), // acceleration
-                                                new Vector2(gameManager.playerShip.direction.x, gameManager.playerShip.direction.y), // direction
-                                                1) // collisionRadius
-
-    );
+                                                1); // collisionRadius
+    gameManager.gameObjects.push(proj);
   }
 }
 
@@ -409,18 +362,22 @@ Vector2.prototype.clampMagnitude = function (newMagnitude) {
  * Creates an instance of a GameObject.
  * @constructor
  * @param {Vector2} position The GameObject's position vector.
+ * @param {Vector2} direction The GameObject's direction vector.
  * @param {Vector2} velocity The GameObject's velocity vector.
  * @param {Vector2} acceleration The GameObject's acceleration vector.
- * @param {Vector2} direction The GameObject's direction vector.
  * @param {number} collisionRadius The GameObject's collisionRadius.
  * @return {GameObject} The new GameObject object.
  */
-function GameObject(position, velocity, acceleration, direction, collisionRadius) {
+function GameObject(position, direction, velocity, acceleration, collisionRadius) {
   // *** BEGIN INPUT VALIDATION ***
   // If no input was received for the 'position' parameter.
   if (position === undefined) throw "The 'position' parameter is required!";
   // If the 'position' parameter is not a Vector2.
   if (!position instanceof Vector2) throw "The 'position' parameter must be a Vector2 object.";
+  // If no input was received for the 'direction' parameter.
+  if (direction === undefined) throw "The 'direction' parameter is required!";
+  // If the 'direction' parameter is not a Vector2.
+  if (!direction instanceof Vector2) throw "The 'direction' parameter must be a Vector2 object.";
   // If no input was received for the 'velocity' parameter.
   if (velocity === undefined) throw "The 'velocity' parameter is required!";
   // If the 'velocity' parameter is not a Vector2.
@@ -429,10 +386,6 @@ function GameObject(position, velocity, acceleration, direction, collisionRadius
   if (acceleration === undefined) throw "The 'acceleration' parameter is required!";
   // If the 'acceleration' parameter is not a Vector2.
   if (!acceleration instanceof Vector2) throw "The 'acceleration' parameter must be a Vector2 object.";
-  // If no input was received for the 'direction' parameter.
-  if (direction === undefined) throw "The 'direction' parameter is required!";
-  // If the 'direction' parameter is not a Vector2.
-  if (!direction instanceof Vector2) throw "The 'direction' parameter must be a Vector2 object.";
   // If no input was received for the 'collisionRadius' parameter.
   if (collisionRadius === undefined) throw "The 'collisionRadius' parameter is required!";
   // If the 'collisionRadius' parameter is not a number.
@@ -443,25 +396,50 @@ function GameObject(position, velocity, acceleration, direction, collisionRadius
 
   // Set the new GameObject's properties.
   this.position = position;
+  this.direction = direction;
   this.velocity = velocity;
   this.acceleration = acceleration;
-  this.direction = direction;
   this.collisionRadius = collisionRadius;
 
   // Log that the new GameObject was created sucessfully.
-  console.log("Created new GameObject: position: " + this.position +
-                                       ", scale: " + this.scale +
-                                    ", velocity: " + this.velocity +
-                                ", acceleration: " + this.acceleration +
-                                   ", direction: " + this.direction +
-                             ", collisionRadius: " + this.collisionRadius);
+  console.log("Created new GameObject: position: " + JSON.stringify(this.position) +
+                                   ", direction: " + JSON.stringify(this.direction) +
+                                    ", velocity: " + JSON.stringify(this.velocity) +
+                                ", acceleration: " + JSON.stringify(this.acceleration) +
+                             ", collisionRadius: " + JSON.stringify(this.collisionRadius));
 }
 
+// Abstract update method for the GameObject base class.
 GameObject.prototype.update = function () {
+  throw "Cannot instantiate abstract class";
+};
+
+// Abstract draw method for the GameObject base class.
+GameObject.prototype.draw = function () {
+  throw "Cannot instantiate abstract class";
+};
+
+/**
+ * Creates an instance of a PlayerShip.
+ * @constructor
+ * @param {Vector2} position The PlayerShip's position vector.
+ * @param {Vector2} direction The PlayerShip's direction vector.
+ * @param {Vector2} velocity The PlayerShip's velocity vector.
+ * @param {Vector2} acceleration The PlayerShip's acceleration vector.
+ * @param {number} collisionRadius The PlayerShip's collisionRadius.
+ * @return {PlayerShip} The new PlayerShip object.
+ */
+function PlayerShip(position, direction, velocity, acceleration, collisionRadius) {
+  GameObject.call(this, position, direction, velocity, acceleration, collisionRadius);
+}
+
+/** @override the update function from the GameObject superclass */
+PlayerShip.prototype.update = function () {
   this.velocity.add(this.acceleration);
   this.velocity.clampMagnitude(3);
   this.position.add(this.velocity);
 
+  // Warp to opposite side of game area if bumping against edge.
   if (this.position.x > gameCanvas.width) {
     this.position.x = 0;
   }
@@ -474,4 +452,83 @@ GameObject.prototype.update = function () {
   if (this.position.y < 0) {
     this.position.y = gameCanvas.height;
   }
+};
+
+/** @override the draw function from the GameObject superclass */
+PlayerShip.prototype.draw = function () {
+  let shipWidth = 10;
+  let shipHeight = 20;
+  gameManager.ctx.save();
+  gameManager.ctx.translate(this.position.x, this.position.y);
+  let angle = Vector2.angleBetween(Vector2.up(), this.direction);
+  gameManager.ctx.rotate(angle);
+  gameManager.ctx.beginPath();
+  gameManager.ctx.moveTo(this.direction.x, this.direction.y-shipHeight);
+  gameManager.ctx.lineTo(shipWidth, shipHeight);
+  gameManager.ctx.lineTo(0, shipWidth);
+  gameManager.ctx.lineTo(-shipWidth, shipHeight);
+  gameManager.ctx.lineTo(0, -shipHeight);
+  gameManager.ctx.lineWidth = 3;
+  gameManager.ctx.strokeStyle = '#FFFFFF';
+  gameManager.ctx.stroke();
+  // If the ship is currently accellerating
+  if (gameManager.controls.up) {
+    let thrustWidth = 5;
+    let thrustHeight = 20;
+    // Draw the thrust flame
+    gameManager.ctx.beginPath();
+    gameManager.ctx.moveTo(0, shipHeight-this.direction.y - thrustWidth);
+    gameManager.ctx.lineTo(thrustWidth, thrustHeight);
+    gameManager.ctx.lineTo(0, 30);
+    gameManager.ctx.lineTo(-thrustWidth, thrustHeight);
+    gameManager.ctx.lineTo(0, shipHeight-this.direction.y - thrustWidth);
+    gameManager.ctx.lineWidth = 2;
+    gameManager.ctx.strokeStyle = '#FFFF00';
+    gameManager.ctx.stroke();
+  }
+  gameManager.ctx.restore();
+};
+
+/**
+ * Creates an instance of a Projectile.
+ * @constructor
+ * @param {Vector2} position The Projectile's position vector.
+ * @param {Vector2} direction The Projectile's direction vector.
+ * @param {Vector2} velocity The Projectile's velocity vector.
+ * @param {Vector2} acceleration The Projectile's acceleration vector.
+ * @param {number} collisionRadius The Projectile's collisionRadius.
+ * @return {Projectile} The new Projectile object.
+ */
+function Projectile(position, direction, velocity, acceleration, collisionRadius) {
+  GameObject.call(this, position, direction, velocity, acceleration, collisionRadius);
+}
+
+/** @override the update function from the GameObject superclass */
+Projectile.prototype.update = function () {
+  // Update the projectile's position based on it's velocity.
+  this.position.add(this.velocity);
+
+  // If this projectile goes outside of the game area
+  if (this.position.x > gameCanvas.width ||
+      this.position.x < 0 ||
+      this.position.y > gameCanvas.height ||
+      this.position.y < 0) {
+    // Remove this projectile from the array of gameObjects
+    let index = gameManager.gameObjects.indexOf(this);
+    gameManager.gameObjects.splice(index, 1);
+  }
+}
+
+/** @override the draw function from the GameObject superclass */
+Projectile.prototype.draw = function () {
+  let length = 10;
+  gameManager.ctx.save();
+  gameManager.ctx.beginPath();
+  gameManager.ctx.moveTo(this.position.x, this.position.y);
+  gameManager.ctx.lineTo(this.position.x + this.direction.x * length,
+                         this.position.y + this.direction.y * length);
+  gameManager.ctx.lineWidth = 2;
+  gameManager.ctx.strokeStyle = '#FFFFFF';
+  gameManager.ctx.stroke();
+  gameManager.ctx.restore();
 };
