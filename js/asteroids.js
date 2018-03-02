@@ -8,15 +8,11 @@
  * Code to play a game of Asteroids.
  */
 
-var controls = {"up": false, "down": false, "left": false, "right": false, "space": false};
+const keyCodes = {space: 32, left: 37, up: 38, right: 39, down: 40};
 
 $(document).ready(function() {
     gameManager.start();
-  }).keydown(function(e) {
-    getInput(e);
-  }).keyup(function(e) {
-    getInput(e);
-});
+  });
 
 var gameManager = {
     // Get reference to game canvas.
@@ -32,7 +28,13 @@ var gameManager = {
                                            new Vector2(0, 0), // acceleration
                                            Vector2.up(), // direction
                                            1); // collisionRadius
+        this.controls = {space: false, left: false, up: false, right: false, down: false};
           requestAnimationFrame(update);
+          $(window).keydown(function(e) {
+            getInput(e);
+          }).keyup(function(e) {
+            getInput(e);
+          });
         } else {
           // Log that we could not get a reference to the context.
           console.log("Could not get canvas context. Browser does not support HTML5 canvas.");
@@ -118,24 +120,24 @@ function drawPlayerShip(ship) {
 
 function getInput(e) {
   if (e.type && (e.type === "keydown" || e.type === "keyup") && e.key) {
-    if (e.key === "ArrowUp") {
-      controls.up = e.type === "keydown" ? true : false;
+    if (e.keyCode === keyCodes.up) {
+      gameManager.controls.up = e.type === "keydown" ? true : false;
       e.preventDefault();
     }
-    if (e.key === "ArrowDown") {
-      controls.down = e.type === "keydown" ? true : false;
+    if (e.keyCode === keyCodes.down) {
+      gameManager.controls.down = e.type === "keydown" ? true : false;
       e.preventDefault();
     }
-    if (e.key === "ArrowLeft") {
-      controls.left = e.type === "keydown" ? true : false;
+    if (e.keyCode === keyCodes.left) {
+      gameManager.controls.left = e.type === "keydown" ? true : false;
       e.preventDefault();
     }
-    if (e.key === "ArrowRight") {
-      controls.right = e.type === "keydown" ? true : false;
+    if (e.keyCode === keyCodes.right) {
+      gameManager.controls.right = e.type === "keydown" ? true : false;
       e.preventDefault();
     }
-    if (e.key === " ") {
-      controls.space = e.type === "keydown" ? true : false;
+    if (e.keyCode === keyCodes.space) {
+      gameManager.controls.space = e.type === "keydown" ? true : false;
       e.preventDefault();
     }
   }
@@ -144,16 +146,16 @@ function getInput(e) {
 function updateMovement() {
   let acceleration = 3;
   let rotationAngle = 3 * (Math.PI / 180);
-  if (controls.up) {
+  if (gameManager.controls.up) {
     gameManager.playerShip.acceleration.add(Vector2.multiply(gameManager.playerShip.direction, acceleration));
   }
-  if (controls.down) {
+  if (gameManager.controls.down) {
     // do nothing.
   }
-  if (controls.left) {
+  if (gameManager.controls.left) {
     gameManager.playerShip.direction.rotate(-rotationAngle);
   }
-  if (controls.right) {
+  if (gameManager.controls.right) {
     gameManager.playerShip.direction.rotate(rotationAngle);
   }
 }
