@@ -27,13 +27,23 @@ var gameManager = {
         // Check whether canvas is available in the browser.
         if (this.canvas.getContext) {
           this.context = this.canvas.getContext('2d');
+          this.controls = {space: false, left: false, up: false, right: false, down: false};
           this.playerShip = new PlayerShip(new Vector2(this.canvas.width/2, this.canvas.height/2), // position
                                            Vector2.up(), // direction
                                            new Vector2(0, 0), // velocity
                                            new Vector2(0, 0), // acceleration
-                                           1); // collisionRadius
-          this.controls = {space: false, left: false, up: false, right: false, down: false};
+                                           20); // collisionRadius
           this.gameObjects = [this.playerShip];
+
+          this.gameObjects.push(new Asteroid(new Vector2(this.canvas.width/3, this.canvas.height/3), // position
+                                             Vector2.up(), // direction
+                                             new Vector2(0, 0), // velocity
+                                             new Vector2(0, 0), // acceleration
+                                             15) // collisionRadius
+          );
+          this.showColliders = false;
+          this.timer = new Date();
+          this.time = this.timer.getMilliseconds;
           requestAnimationFrame(update);
         } else {
           // Log that we could not get a reference to the context.
@@ -45,9 +55,13 @@ var gameManager = {
 function update() {
   handleInput();
   drawBackground();
-  for (go of gameManager.gameObjects) {
+  for (let i = 0; i < gameManager.gameObjects.length; i++) {
+    let go = gameManager.gameObjects[i];
     go.update();
     go.draw();
+    if (gameManager.showColliders) {
+      go.drawCollider();
+    }
   }
   //drawVector(gameManager.playerShip.direction);
   drawHealth();
@@ -134,6 +148,8 @@ function handleInput() {
   let ship = gameManager.playerShip;
   let acceleration = 3;
   let rotationAngle = 3 * (Math.PI / 180);
+  let fireRate = 0.125;
+  let nextFire = 0;
   if (controls.up) {
     ship.acceleration.add(Vector2.multiply(ship.direction, acceleration));
   }
@@ -149,14 +165,17 @@ function handleInput() {
     ship.direction.rotate(rotationAngle);
   }
   if (controls.space) {
-    let projectileVelocity = 3;
-    let projectilePositionOffset = 10;
-    let proj = new Projectile(Vector2.add(ship.position, Vector2.multiply(ship.direction, projectilePositionOffset)), // position
-                                                new Vector2(ship.direction.x, ship.direction.y), // direction
-                                                Vector2.multiply(ship.direction, projectileVelocity), // velocity
-                                                new Vector2(0, 0), // acceleration
-                                                1); // collisionRadius
-    gameManager.gameObjects.push(proj);
+    console.log(gameManager.time());
+    if (gameManager.time() > nextFire) {
+        nextFire = gameManager.time() + fireRate;
+        let projectileVelocity = 3;
+        let proj = new Projectile(Vector2.add(ship.position, Vector2.multiply(ship.direction, ship.collisionRadius)), // position
+                                                    new Vector2(ship.direction.x, ship.direction.y), // direction
+                                                    Vector2.multiply(ship.direction, projectileVelocity), // velocity
+                                                    new Vector2(0, 0), // acceleration
+                                                    1); // collisionRadius
+        gameManager.gameObjects.push(proj);
+    }
   }
 }
 
@@ -564,6 +583,20 @@ GameObject.prototype.draw = function () {
   }
 };
 
+// Draws a circle representing the collisionRadius
+GameObject.prototype.drawCollider = function () {
+  let context = gameManager.context;
+  context.save();
+  context.beginPath();
+  context.beginPath();
+  context.arc(this.position.x,this.position.y,this.collisionRadius,0,2*Math.PI);
+  context.stroke();
+  context.lineWidth = 2;
+  context.strokeStyle = '#FFFFFF';
+  context.stroke();
+  context.restore();
+};
+
 /**
  * Creates an instance of a PlayerShip.
  * @constructor
@@ -577,6 +610,8 @@ GameObject.prototype.draw = function () {
 function PlayerShip(position, direction, velocity, acceleration, collisionRadius) {
   GameObject.call(this, position, direction, velocity, acceleration, collisionRadius);
 }
+PlayerShip.prototype = Object.create(GameObject.prototype);
+PlayerShip.prototype.constructor = PlayerShip;
 
 /** @override The update function from the GameObject superclass */
 PlayerShip.prototype.update = function () {
@@ -648,6 +683,8 @@ PlayerShip.prototype.draw = function () {
 function Projectile(position, direction, velocity, acceleration, collisionRadius) {
   GameObject.call(this, position, direction, velocity, acceleration, collisionRadius);
 }
+Projectile.prototype = Object.create(GameObject.prototype);
+Projectile.prototype.constructor = Projectile;
 
 /** @override The update function from the GameObject superclass */
 Projectile.prototype.update = function () {
@@ -674,6 +711,67 @@ Projectile.prototype.draw = function () {
   context.moveTo(this.position.x, this.position.y);
   context.lineTo(this.position.x + this.direction.x * length,
                          this.position.y + this.direction.y * length);
+  context.lineWidth = 2;
+  context.strokeStyle = '#FFFFFF';
+  context.stroke();
+  context.restore();
+};
+
+/**
+ * Creates an instance of an Asteroid.
+ * @constructor
+ * @param {Vector2} position The Projectile's position vector.
+ * @param {Vector2} direction The Projectile's direction vector.
+ * @param {Vector2} velocity The Projectile's velocity vector.
+ * @param {Vector2} acceleration The Projectile's acceleration vector.
+ * @param {number} collisionRadius The Projectile's collisionRadius.
+ * @return {Asteroid} The new Projectile object.
+ */
+function Asteroid(position, direction, velocity, acceleration, collisionRadius) {
+  GameObject.call(this, position, direction, velocity, acceleration, collisionRadius);
+}
+Asteroid.prototype = Object.create(GameObject.prototype);
+Asteroid.prototype.constructor = Asteroid;
+
+/** @override The update function from the GameObject superclass */
+Asteroid.prototype.update = function () {
+  // Update the Asteroid's position based on it's velocity.
+  this.position.add(this.velocity);
+
+  let rotationAngle = 3 * (Math.PI / 180);
+  this.direction.rotate(rotationAngle);
+
+  // Warp to opposite side of game area if bumping against edge.
+  if (this.position.x > gameCanvas.width) {
+    this.position.x = 0;
+  }
+  if (this.position.x < 0) {
+    this.position.x = gameCanvas.width;
+  }
+  if (this.position.y > gameCanvas.height) {
+    this.position.y = 0;
+  }
+  if (this.position.y < 0) {
+    this.position.y = gameCanvas.height;
+  }
+}
+
+/** @override the draw function from the GameObject superclass */
+Asteroid.prototype.draw = function () {
+  let context = gameManager.context;
+  let length = 10;
+  context.save();
+  context.beginPath();
+  context.moveTo(this.position.x,
+                 this.position.y - this.collisionRadius);
+  context.lineTo(this.position.x - this.collisionRadius,
+                 this.position.y);
+  context.lineTo(this.position.x,
+                 this.position.y + this.collisionRadius);
+  context.lineTo(this.position.x + this.collisionRadius,
+                 this.position.y);
+  context.lineTo(this.position.x,
+                 this.position.y - this.collisionRadius);
   context.lineWidth = 2;
   context.strokeStyle = '#FFFFFF';
   context.stroke();
