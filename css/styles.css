@@ -29,12 +29,13 @@ body {
 header {
   background-color: #539987;
   font-size: 1.25em;
+  overflow: auto;
 }
 
-header h1 {
-  display: inline-block;
-  width: 30%;
-  text-align: center;
+.logo {
+  padding-left: 0.5em;
+  font-weight: bold;
+  display: block;
 }
 
 nav {
