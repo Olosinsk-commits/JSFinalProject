@@ -31,6 +31,36 @@ var carX2 = 500; //car width
 var carSX2 = 60; 
 var carY2 = 400; //car height
 
+	//variables for third car
+	var carX3 = 460; 
+	var carSX3 = 120; 
+	var carY3 = 355; 
+
+	//variables for fourth car
+var carX4 = 400; 
+var carSX4 = 180; 
+var carY4 = 310; 
+
+	//variables for fifth car
+var carX5 = 360; 
+var carSX5 = 0; 
+var carY5 = 265; 
+
+	//variables for sixth car
+var carX6 = 60; 
+var carSX6 = 120; 
+var carY6 = 355; 
+
+	//variables for seventh car
+var carX7 = 100; 
+var carSX7 = 180; 
+var carY7 = 310; 
+
+	//variables for eighth car
+	var carX8 = 160; 
+	var carSX8 = 0; 
+	var carY8 = 265; 
+
 	//general car width and height
 var carWidth = 60;
 var carHeight = 35;
@@ -153,26 +183,79 @@ function moveFrog () {
 }
 	//function that will draw the cars
 function drawCars() {
-	context.drawImage(car, carSX1, 0, 60, 35, carX1, carY1, carWidth, carHeight);
-		if (carX1 < canvas.width + 100) {
-			carX1 = carX1 + 5;
-		} else {
-				carX1 = -100;
-				carSX1 = (Math.floor(Math.random() * 4)) * 60;
-		  } 
-		  // image of the second car
-	context.drawImage(car, carSX2, 0, 60, 35, carX2, carY2, carWidth, carHeight);
-		if (carX2 < canvas.width + 100) {
-			carX2 = carX2 + 5;
-		} else {
-				carX2 = -100;
-				carSX2 = (Math.floor(Math.random() * 4)) * 60;
-		  }
+
+	var carsSX = [carSX1, carSX2, carSX3, carSX4, carSX5, carSX6, carX7, carSX8];
+	var carsX = [carX1, carX2, carX3, carX4, carX5, carX6, carX7, carX8];
+	var carsY = [carY1, carY2, carY3, carY4, carY5, carY6, carY7, carY8];
+	for (i = 0; i < carsX.length; i++) {
+		context.drawImage(car, carsSX[i], 0, 60, 35, carsX[i], carsY[i], carWidth, carHeight);
+
+	}
+	
+}
+	//function that will allow all the cars to move
+function moveCars() {
+		//1st car
+	if (carX1 < canvas.width + 100) {
+		carX1 = carX1 + 5;
+	} else {
+			carX1 = -100;
+			carSX1 = (Math.floor(Math.random() * 4)) * 60;
+	  } 
+	  //2nd car
+	if (carX2 < canvas.width + 100) {
+		carX2 = carX2 + 5;
+	} else {
+			carX2 = -100;
+			carSX2 = (Math.floor(Math.random() * 4)) * 60;
+	  }
+	  //3nd car
+	if (carX3 > -100) {
+		carX3 = carX3 - 5;
+	} else {
+			carX3 = canvas.width + 100;
+			carSX3 = (Math.floor(Math.random() * 4)) * 60;
+	  }
+	  	  //4th car
+	if (carX4 < canvas.width + 100) {
+		carX4 = carX4 + 5;
+	} else {
+			carX4 = -100;
+			carSX4 = (Math.floor(Math.random() * 4)) * 60;
+	  }
+	  	  //5th car
+	  if (carX5 > -100) {
+		carX5 = carX3 - 5;
+	} else {
+			carX5 = canvas.width + 100;
+			carSX5 = (Math.floor(Math.random() * 4)) * 60;
+	  }
+	  	  //6th car
+	if (carX6 > -100) {
+		carX6 = carX6 - 5;
+	} else {
+			carX6 = canvas.width + 100;
+			carSX6 = (Math.floor(Math.random() * 4)) * 60;
+	  }
+	  	  //7th car
+	if (carX7 < canvas.width + 100) {
+		carX7 = carX7 + 5;
+	} else {
+			carX7 = -100;
+			carSX7 = (Math.floor(Math.random() * 4)) * 60;
+	  }
+	  //8th car
+	  if (carX8 > -100) {
+		carX8 = carX8 - 5;
+	} else {
+			carX8 = canvas.width + 100;
+			carSX8 = (Math.floor(Math.random() * 4)) * 60;
+	  }
 }
 	//function that detects if the frog and car images are overlapping
 	function runOver() {
-		var carsX = [carX1, carX2];
-		var carsY = [carY1, carY2];
+		var carsX = [carX1, carX2, carX3, carX4, carX5, carX6, carX7, carX8];
+		var carsY = [carY1, carY2, carY3, carY4, carY5, carY6, carY7, carY8];
 		for (i = 0; i < carsX.length; i++) {
 			if (carsX[i] <= x + width &&
 				carsX[i] + carWidth >= x &&
@@ -188,6 +271,7 @@ function draw() {
 	drawFrog();
 	moveFrog();	
 	drawCars();
+	moveCars();
 	runOver();
 	requestAnimationFrame(draw);
 }
