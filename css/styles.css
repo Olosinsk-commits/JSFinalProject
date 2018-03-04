@@ -10,20 +10,6 @@
  * Main styles for the group project that will be used on all pages.
  */
 
-@font-face {
-  font-family: 'Inconsolata';
-  font-style: normal;
-  font-weight: 400;
-  src: local('Inconsolata Regular'), local('Inconsolata-Regular'), url('fonts/inconsolata.woff2') format('woff2'), url('fonts/inconsolata.woff') format('woff');
-}
-
-@font-face {
-  font-family: 'VT323';
-  font-style: normal;
-  font-weight: 400;
-  src: local('VT323 Regular'), local('VT323-Regular'), url('fonts/vt323.woff2') format('woff2'), url('fonts/vt323.woff') format('woff');
-}
-
 html {
   background-color: #4f4f4f;
   padding: 0.3125em 0em;
@@ -43,12 +29,13 @@ body {
 header {
   background-color: #539987;
   font-size: 1.25em;
+  overflow: auto;
 }
 
-header h1 {
-  display: inline-block;
-  width: 30%;
-  text-align: center;
+.logo {
+  padding-left: 0.5em;
+  font-weight: bold;
+  display: block;
 }
 
 nav {
