@@ -12,11 +12,12 @@
 
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <!-- <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="description" content="Group 3 Showcase Project">
   <meta name="keywords" content="showcase, project, games, group, jQuery, JavaScript">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
   <title>Showcase Project</title>
+  <link href="https://fonts.googleapis.com/css?family=Inconsolata|VT323" rel="stylesheet">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <script src="../js/scripts.js"></script>
   <link rel="stylesheet" type="text/css" href="../css/styles.css">
@@ -68,7 +69,7 @@
       <div id="message"></div>
       <br>
       <div id="boxesWrapper">
-        <input type="text" id="box" class="boxOne"/>
+        <!-- <input type="text" id="box" class="boxOne"/>
         <input type="text" id="box" class="boxTwo"/>
         <input type="text" id="box" class="boxThree"/>
         <input type="text" id="box" class="boxFour"/>
@@ -76,11 +77,26 @@
         <input type="text" id="box" class="boxSix" />
         <input type="text" id="box" class="boxSeven" />
         <input type="text" id="box" class="boxEight" />
-        <input type="text" id="box" class="boxNine" />
-     </div>
-     <div id="reset"></div>
+        <input type="text" id="box" class="boxNine" /> -->
 
+        <div class="grid-container">
+          <div class="grid-item"><input type="text" id="box1" class="boxOne"/></div>
+          <div class="grid-item"><input type="text" id="box2" class="boxTwo"/></div>
+          <div class="grid-item"><input type="text" id="box3" class="boxThree"/></div>
+          <div class="grid-item"><input type="text" id="box4" class="boxFour"/></div>
+          <div class="grid-item"><input type="text" id="box5" class="boxFive" /></div>
+          <div class="grid-item"><input type="text" id="box6" class="boxSix" /></div>
+          <div class="grid-item"><input type="text" id="box7" class="boxSeven" /></div>
+          <div class="grid-item"><input type="text" id="box8" class="boxEight" /></div>
+          <div class="grid-item"><input type="text" id="box9" class="boxNine" /></div>
+        </div>
+
+     </div>
+     <span id="btn">
+     <div id="reset"></div>
+</span>
   </div>
+
 </section>
 
 <section>
