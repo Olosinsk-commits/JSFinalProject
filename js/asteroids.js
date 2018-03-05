@@ -8,7 +8,7 @@
  * Code to play a game of Asteroids.
  */
 
-const keyCodes = {space: 32, left: 37, up: 38, right: 39, down: 40};
+const KEY_CODES = {32: 'space', 37: 'left', 38: 'up', 39: 'right', 40: 'down'};
 
 $(document).ready(function() {
     $(window).keydown(function(e) {
@@ -27,7 +27,14 @@ var gameManager = {
         // Check whether canvas is available in the browser.
         if (this.canvas.getContext) {
           this.context = this.canvas.getContext('2d');
-          this.controls = {space: false, left: false, up: false, right: false, down: false};
+          // Array to store the controls states
+          this.CONTROLS_STATE = {};
+          // Initialize the array with the keys as all being false
+          for (keyCode in KEY_CODES) {
+            this.CONTROLS_STATE[KEY_CODES[keyCode]] = false;
+          }
+          this.fireRate = 125;
+          this.nextFire = 0;
           this.playerShip = new PlayerShip(new Vector2(this.canvas.width/2, this.canvas.height/2), // position
                                            Vector2.up(), // direction
                                            new Vector2(0, 0), // velocity
@@ -42,8 +49,6 @@ var gameManager = {
                                              15) // collisionRadius
           );
           this.showColliders = false;
-          this.timer = new Date();
-          this.time = this.timer.getMilliseconds;
           requestAnimationFrame(update);
         } else {
           // Log that we could not get a reference to the context.
@@ -61,6 +66,9 @@ function update() {
     go.draw();
     if (gameManager.showColliders) {
       go.drawCollider();
+    }
+    if (go instanceof Asteroid) {
+      //
     }
   }
   //drawVector(gameManager.playerShip.direction);
@@ -118,56 +126,35 @@ function drawVector(vector) {
 }
 
 function getInput(e) {
-  let controls = gameManager.controls;
-  if (e.type && (e.type === "keydown" || e.type === "keyup") && e.key) {
-    if (e.keyCode === keyCodes.up) {
-      controls.up = e.type === "keydown" ? true : false;
-      e.preventDefault();
-    }
-    if (e.keyCode === keyCodes.down) {
-      controls.down = e.type === "keydown" ? true : false;
-      e.preventDefault();
-    }
-    if (e.keyCode === keyCodes.left) {
-      controls.left = e.type === "keydown" ? true : false;
-      e.preventDefault();
-    }
-    if (e.keyCode === keyCodes.right) {
-      controls.right = e.type === "keydown" ? true : false;
-      e.preventDefault();
-    }
-    if (e.keyCode === keyCodes.space) {
-      controls.space = e.type === "keydown" ? true : false;
-      e.preventDefault();
-    }
+  if (KEY_CODES[e.keyCode]) {
+    e.preventDefault();
+    gameManager.CONTROLS_STATE[KEY_CODES[e.keyCode]] = e.type === "keydown" ? true : false;
   }
 }
 
 function handleInput() {
-  let controls = gameManager.controls;
   let ship = gameManager.playerShip;
   let acceleration = 3;
   let rotationAngle = 3 * (Math.PI / 180);
-  let fireRate = 0.125;
-  let nextFire = 0;
-  if (controls.up) {
+  if (gameManager.CONTROLS_STATE.up) {
+    // Accellerate the ship in the direction it is currently facing.
     ship.acceleration.add(Vector2.multiply(ship.direction, acceleration));
   }
   /*
-  if (gameManager.controls.down) {
+  if (gameManager.CONTROLS_STATE.down) {
     // do nothing.
   }
   */
-  if (controls.left) {
+  if (gameManager.CONTROLS_STATE.left) {
     ship.direction.rotate(-rotationAngle);
   }
-  if (controls.right) {
+  if (gameManager.CONTROLS_STATE.right) {
     ship.direction.rotate(rotationAngle);
   }
-  if (controls.space) {
-    console.log(gameManager.time());
-    if (gameManager.time() > nextFire) {
-        nextFire = gameManager.time() + fireRate;
+  if (gameManager.CONTROLS_STATE.space) {
+    // If enough time has passed between the last fire and this one
+    if (Date.now() > gameManager.nextFire) {
+        gameManager.nextFire = Date.now() + gameManager.fireRate;
         let projectileVelocity = 3;
         let proj = new Projectile(Vector2.add(ship.position, Vector2.multiply(ship.direction, ship.collisionRadius)), // position
                                                     new Vector2(ship.direction.x, ship.direction.y), // direction
@@ -328,6 +315,7 @@ Vector2.add = function (vectorA, vectorB) {
   }
   // *** END INPUT VALIDATION ***
 
+  // Return a new vector with components equal to the sum of the two input vector's components.
   return new Vector2 (vectorA.x + vectorB.x, vectorA.y + vectorB.y);
 }
 
@@ -486,7 +474,7 @@ Vector2.prototype.normalize = function () {
 
 /**
  * Clamps the magnitude of this vector.
- * @param {number}
+ * @param {number} max The maximum magnitude that the vector should be clamped to.
  */
 Vector2.prototype.clampMagnitude = function (max) {
   // *** BEGIN INPUT VALIDATION ***
@@ -653,7 +641,7 @@ PlayerShip.prototype.draw = function () {
   context.strokeStyle = '#FFFFFF';
   context.stroke();
   // If the ship is currently accellerating
-  if (gameManager.controls.up) {
+  if (gameManager.CONTROLS_STATE.up) {
     let thrustWidth = 5;
     let thrustHeight = 20;
     // Draw the thrust flame
