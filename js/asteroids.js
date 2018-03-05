@@ -57,8 +57,8 @@ var gameManager = {
     }
 }
 
-function update() {
-  handleInput();
+function update(time) {
+  handleInput(time);
   drawBackground();
   for (let i = 0; i < gameManager.gameObjects.length; i++) {
     let go = gameManager.gameObjects[i];
@@ -132,7 +132,7 @@ function getInput(e) {
   }
 }
 
-function handleInput() {
+function handleInput(time) {
   let ship = gameManager.playerShip;
   let acceleration = 3;
   let rotationAngle = 3 * (Math.PI / 180);
@@ -153,8 +153,8 @@ function handleInput() {
   }
   if (gameManager.CONTROLS_STATE.space) {
     // If enough time has passed between the last fire and this one
-    if (Date.now() > gameManager.nextFire) {
-        gameManager.nextFire = Date.now() + gameManager.fireRate;
+    if (time > gameManager.nextFire) {
+        gameManager.nextFire = time + gameManager.fireRate;
         let projectileVelocity = 3;
         let proj = new Projectile(Vector2.add(ship.position, Vector2.multiply(ship.direction, ship.collisionRadius)), // position
                                                     new Vector2(ship.direction.x, ship.direction.y), // direction
@@ -482,7 +482,7 @@ Vector2.prototype.clampMagnitude = function (max) {
     // If the 'max' parameter is not a number.
     if (typeof max !== 'number') throw "The 'max' parameter must be a number.";
     // If the 'max' parameter is less than or equal to 0.
-    if (max <= 0) throw "The 'max' parameter must be a positive number greater than zero.";
+    if (max < 0) throw "The 'max' parameter must be a positive number greater than zero.";
   }
   catch (e) {
     console.log(e.message);
@@ -695,10 +695,12 @@ Projectile.prototype.draw = function () {
   let context = gameManager.context;
   let length = 10;
   context.save();
+  context.translate(this.position.x, this.position.y);
+  let angle = Vector2.angleBetween(Vector2.up(), this.direction);
+  context.rotate(angle);
   context.beginPath();
-  context.moveTo(this.position.x, this.position.y);
-  context.lineTo(this.position.x + this.direction.x * length,
-                         this.position.y + this.direction.y * length);
+  context.moveTo(0, 0);
+  context.lineTo(0, length);
   context.lineWidth = 2;
   context.strokeStyle = '#FFFFFF';
   context.stroke();
@@ -726,7 +728,7 @@ Asteroid.prototype.update = function () {
   // Update the Asteroid's position based on it's velocity.
   this.position.add(this.velocity);
 
-  let rotationAngle = 3 * (Math.PI / 180);
+  let rotationAngle = 0.5 * (Math.PI / 180);
   this.direction.rotate(rotationAngle);
 
   // Warp to opposite side of game area if bumping against edge.
@@ -749,17 +751,15 @@ Asteroid.prototype.draw = function () {
   let context = gameManager.context;
   let length = 10;
   context.save();
+  context.translate(this.position.x, this.position.y);
+  let angle = Vector2.angleBetween(Vector2.up(), this.direction);
+  context.rotate(angle);
   context.beginPath();
-  context.moveTo(this.position.x,
-                 this.position.y - this.collisionRadius);
-  context.lineTo(this.position.x - this.collisionRadius,
-                 this.position.y);
-  context.lineTo(this.position.x,
-                 this.position.y + this.collisionRadius);
-  context.lineTo(this.position.x + this.collisionRadius,
-                 this.position.y);
-  context.lineTo(this.position.x,
-                 this.position.y - this.collisionRadius);
+  context.moveTo(0, length);
+  context.lineTo(length, 0);
+  context.lineTo(0, -length);
+  context.lineTo(-length, 0);
+  context.lineTo(0, length);
   context.lineWidth = 2;
   context.strokeStyle = '#FFFFFF';
   context.stroke();
