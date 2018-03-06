@@ -33,6 +33,8 @@ var gameManager = {
           for (keyCode in KEY_CODES) {
             this.CONTROLS_STATE[KEY_CODES[keyCode]] = false;
           }
+          this.playerLives = 3;
+          this.playerScore = 0;
           this.fireRate = 125;
           this.nextFire = 0;
           this.playerShip = new PlayerShip(new Vector2(this.canvas.width/2, this.canvas.height/2), // position
@@ -46,7 +48,25 @@ var gameManager = {
                                              Vector2.up(), // direction
                                              Vector2.zero(), // velocity
                                              Vector2.zero(), // acceleration
-                                             10) // collisionRadius
+                                             10, // collisionRadius
+                                             3, // numSides
+                                             10) // scoreValue
+          );
+          this.gameObjects.push(new Asteroid(new Vector2(this.canvas.width/2, this.canvas.height/3), // position
+                                             Vector2.up(), // direction
+                                             Vector2.zero(), // velocity
+                                             Vector2.zero(), // acceleration
+                                             10, // collisionRadius
+                                             4, // numSides
+                                             10) // scoreValue
+          );
+          this.gameObjects.push(new Asteroid(new Vector2(this.canvas.width*2/3, this.canvas.height/3), // position
+                                             Vector2.up(), // direction
+                                             Vector2.zero(), // velocity
+                                             Vector2.zero(), // acceleration
+                                             10, // collisionRadius
+                                             5, // numSides
+                                             10) // scoreValue
           );
           this.showColliders = false;;
           requestAnimationFrame(update);
@@ -67,18 +87,18 @@ function update(time) {
     if (gameManager.showColliders) {
       go.drawCollider();
     }
-    if (go instanceof Asteroid) {
+    if (go instanceof Asteroid || go instanceof PlayerShip) {
       go.checkCollision();
     }
   }
-  //drawVector(gameManager.playerShip.direction);
-  drawHealth();
+  drawLives();
   drawScore();
   requestAnimationFrame(update);
 }
 
 /**
- * Clears the game canvas by drawing a black rectangle over the entire canvas.
+ * Draws the black background for the game.
+ * This also serves the purpose of clearing the entire canvas.
  */
 function drawBackground() {
   let context = gameManager.context;
@@ -87,50 +107,64 @@ function drawBackground() {
   context.fillRect(0, 0, canvas.width, canvas.height);
 }
 
-function drawHealth() {
+/**
+ * Draws the player's available lives.
+ */
+function drawLives() {
+  let canvas = gameManager.canvas;
   let context = gameManager.context;
   let fontSize = 20;
   context.font = fontSize + "px Arial";
   context.fillStyle = "#FFFFFF";
   context.textAlign = "left";
-  let health = 100;
-  let healthText = "Health: " + health;
-  context.fillText(healthText, 2, fontSize);
+  let livesText = "Lives: ";
+  let textWidth = context.measureText(livesText).width;
+  context.fillText(livesText, 2, fontSize * 2);
+
+  let shipWidth = 5;
+  let shipHeight = 10;
+
+  // Loop 'playerLives' times to draw the ship avatar once per life.
+  for (let i = 0; i < gameManager.playerLives; i++) {
+    context.save();
+    // Offset the position from the lives text by a multiple of the ship's width to space them out evenly.
+    context.translate(textWidth + (2 * shipWidth) + (4 * shipWidth * i), fontSize * 2);
+    context.beginPath();
+    context.moveTo(0, -shipHeight);
+    context.lineTo(shipWidth, shipHeight);
+    context.lineTo(0, shipWidth);
+    context.lineTo(-shipWidth, shipHeight);
+    context.lineTo(0, -shipHeight);
+    context.lineWidth = 2;
+    context.strokeStyle = '#FFFFFF';
+    context.stroke();
+    context.restore();
+  }
 }
 
+/**
+ * Draws the player's current score.
+ */
 function drawScore() {
   let context = gameManager.context;
   let canvas = gameManager.canvas;
   let fontSize = 20;
   context.font = fontSize + "px Arial";
   context.fillStyle = "#FFFFFF";
-  context.textAlign = "right";
-  let score = 100;
-  let scoreText = "Score: " + score;
-  context.fillText(scoreText, canvas.width - 2, fontSize);
-}
-
-function drawVector(vector) {
-  let context = gameManager.context;
-  let ship = gameManager.playerShip;
-  let vectorDrawLength = 30;
-  context.save();
-  context.beginPath();
-  context.moveTo(ship.position.x, ship.position.y);
-  context.lineTo(ship.position.x + vector.x * vectorDrawLength,
-                 ship.position.y + vector.y * vectorDrawLength);
-  context.lineWidth = 2;
-  context.strokeStyle = '#FFFFFF';
-  context.stroke();
-  context.restore();
+  context.textAlign = "left";
+  let scoreText = "Score: " + gameManager.playerScore;
+  context.fillText(scoreText, 0, fontSize);
 }
 
 /**
  * Gets input from the browser and stores the relevent key states
  */
 function getInput(e) {
+  // If the key code of the event is in our key codes array.
   if (KEY_CODES[e.keyCode]) {
+    // Prevent the default so that the page does not scroll or lose focus.
     e.preventDefault();
+    // Convert from the key code to the control and set the state based on whether the type of the even was keydown.
     gameManager.CONTROLS_STATE[KEY_CODES[e.keyCode]] = e.type === "keydown" ? true : false;
   }
 }
@@ -689,6 +723,16 @@ GameObject.prototype.draw = function () {
   }
 };
 
+// Abstract checkCollision method for the GameObject base class.
+GameObject.prototype.checkCollision = function () {
+  try {
+    throw "Cannot instantiate abstract class";
+  }
+  catch (e) {
+    console.log(e.message);
+  }
+};
+
 // Draws a circle representing the collisionRadius
 GameObject.prototype.drawCollider = function () {
   let context = gameManager.context;
@@ -761,7 +805,7 @@ PlayerShip.prototype.draw = function () {
   context.strokeStyle = '#FFFFFF';
   context.stroke();
 
-  // If the ship is currently accellerating
+  // If the ship is currently accellerating draw the thruster flame.
   if (this.acceleration.magnitude() > 0.04) {
     let thrustWidth = 2.5;
     let thrustMiddle = 2;
@@ -781,6 +825,30 @@ PlayerShip.prototype.draw = function () {
   }
   context.restore();
 };
+
+/** @override the checkCollision function from the GameObject superclass */
+PlayerShip.prototype.checkCollision = function () {
+  // Loop through the other game objects and check whether any of their colliders intersect
+  for (let i = 0; i < gameManager.gameObjects.length; i++) {
+    let otherObject = gameManager.gameObjects[i];
+    if (otherObject instanceof Asteroid) {
+      let dx = this.position.x - otherObject.position.x;
+      let dy = this.position.y - otherObject.position.y;
+      let distance = Math.sqrt(dx * dx + dy * dy);
+      // If this PlayerShip is intersecting with an Asteroid
+      if (distance < this.collisionRadius + otherObject.collisionRadius) {
+        // Move the player ship to the starting position and remove a life.
+        this.position.x = gameManager.canvas.width/2;
+        this.position.y = gameManager.canvas.height/2;
+        this.direction = Vector2.up();
+        this.velocity = Vector2.zero();
+        this.acceleration = Vector2.zero();
+        // Decrease the player's lives by 1.
+        gameManager.playerLives--;
+      }
+    }
+  }
+}
 
 /**
  * Creates an instance of a Projectile.
@@ -838,11 +906,35 @@ Projectile.prototype.draw = function () {
  * @param {Vector2} direction The Projectile's direction vector.
  * @param {Vector2} velocity The Projectile's velocity vector.
  * @param {Vector2} acceleration The Projectile's acceleration vector.
- * @param {number} collisionRadius The Projectile's collisionRadius.
- * @return {Asteroid} The new Projectile object.
+ * @param {number} collisionRadius The Projectile's collision radius size.
+ * @param {number} numSides The Projectile's number of sides.
+ * @param {number} scoreValue The Projectile's score value.
+ * @return {Asteroid} The new Asteroid object.
  */
-function Asteroid(position, direction, velocity, acceleration, collisionRadius) {
+function Asteroid(position, direction, velocity, acceleration, collisionRadius, numSides, scoreValue) {
   GameObject.call(this, position, direction, velocity, acceleration, collisionRadius);
+  // *** BEGIN INPUT VALIDATION ***
+  try {
+    // If no input was received for the 'numSides' parameter.
+    if (numSides === undefined) throw "The 'numSides' parameter is required!";
+    // If the 'numSides' parameter is not a number.
+    if (typeof numSides !== 'number') throw "The 'numSides' parameter must be a number.";
+    // If the 'numSides' parameter is less than or equal to 2.
+    if (numSides <= 2) throw "The 'numSides' parameter must be a positive number greater than 2.";
+    // If no input was received for the 'scoreValue' parameter.
+    if (scoreValue === undefined) throw "The 'scoreValue' parameter is required!";
+    // If the 'scoreValue' parameter is not a number.
+    if (typeof scoreValue !== 'number') throw "The 'scoreValue' parameter must be a number.";
+    // If the 'scoreValue' parameter is less than or equal to 0.
+    if (scoreValue <= 0) throw "The 'scoreValue' parameter must be a positive number greater than zero.";
+  }
+  catch (e) {
+    console.log(e.message);
+  }
+  // *** END INPUT VALIDATION ***
+
+  this.numSides = numSides;
+  this.scoreValue = scoreValue;
 }
 Asteroid.prototype = Object.create(GameObject.prototype);
 Asteroid.prototype.constructor = Asteroid;
@@ -890,8 +982,9 @@ Asteroid.prototype.draw = function () {
   context.restore();
 };
 
-/** @override the draw function from the GameObject superclass */
+/** @override the checkCollision function from the GameObject superclass */
 Asteroid.prototype.checkCollision = function () {
+  // Loop through the other game objects and check whether any of their colliders intersect
   for (let i = 0; i < gameManager.gameObjects.length; i++) {
     let otherObject = gameManager.gameObjects[i];
     if (otherObject instanceof Projectile) {
@@ -903,6 +996,8 @@ Asteroid.prototype.checkCollision = function () {
         // Remove this Asteroid from the array of gameObjects
         let index = gameManager.gameObjects.indexOf(this);
         gameManager.gameObjects.splice(index, 1);
+        // Increase the player's score by this Asteroid's score value.
+        gameManager.playerScore += this.scoreValue;
       }
     }
   }
