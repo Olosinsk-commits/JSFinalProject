@@ -13,8 +13,7 @@
 }
 
 #gameCanvas {
-  width: 50em;
+  width: 80%;
   margin: auto;
   display: block;
-  padding: 1.25em;
 }
