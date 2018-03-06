@@ -37,18 +37,18 @@ var gameManager = {
           this.nextFire = 0;
           this.playerShip = new PlayerShip(new Vector2(this.canvas.width/2, this.canvas.height/2), // position
                                            Vector2.up(), // direction
-                                           new Vector2(0, 0), // velocity
-                                           new Vector2(0, 0), // acceleration
-                                           20); // collisionRadius
+                                           Vector2.zero(), // velocity
+                                           Vector2.zero(), // acceleration
+                                           12); // collisionRadius
           this.gameObjects = [this.playerShip];
 
           this.gameObjects.push(new Asteroid(new Vector2(this.canvas.width/3, this.canvas.height/3), // position
                                              Vector2.up(), // direction
-                                             new Vector2(0, 0), // velocity
-                                             new Vector2(0, 0), // acceleration
-                                             15) // collisionRadius
+                                             Vector2.zero(), // velocity
+                                             Vector2.zero(), // acceleration
+                                             10) // collisionRadius
           );
-          this.showColliders = false;
+          this.showColliders = false;;
           requestAnimationFrame(update);
         } else {
           // Log that we could not get a reference to the context.
@@ -68,7 +68,7 @@ function update(time) {
       go.drawCollider();
     }
     if (go instanceof Asteroid) {
-      //
+      go.checkCollision();
     }
   }
   //drawVector(gameManager.playerShip.direction);
@@ -125,6 +125,9 @@ function drawVector(vector) {
   context.restore();
 }
 
+/**
+ * Gets input from the browser and stores the relevent key states
+ */
 function getInput(e) {
   if (KEY_CODES[e.keyCode]) {
     e.preventDefault();
@@ -139,7 +142,7 @@ function handleInput(time) {
   if (gameManager.CONTROLS_STATE.up) {
     // Accellerate the ship in the direction it is currently facing.
     ship.acceleration = Vector2.lerp(ship.acceleration, Vector2.multiply(ship.direction, acceleration), 0.005);
-    ship.acceleration.clampMagnitude(5);
+    ship.acceleration.clampMagnitude(3);
   }
   /*
   if (gameManager.CONTROLS_STATE.down) {
@@ -158,10 +161,10 @@ function handleInput(time) {
         gameManager.nextFire = time + gameManager.fireRate;
         let projectileVelocity = 3;
         let proj = new Projectile(Vector2.add(ship.position, Vector2.multiply(ship.direction, ship.collisionRadius)), // position
-                                                    new Vector2(ship.direction.x, ship.direction.y), // direction
-                                                    Vector2.multiply(ship.direction, projectileVelocity), // velocity
-                                                    new Vector2(0, 0), // acceleration
-                                                    1); // collisionRadius
+                                  new Vector2(ship.direction.x, ship.direction.y), // direction
+                                  Vector2.multiply(ship.direction, projectileVelocity), // velocity
+                                  Vector2.zero(), // acceleration
+                                  1); // collisionRadius
         gameManager.gameObjects.push(proj);
     }
   }
@@ -573,6 +576,44 @@ Vector2.prototype.clampMagnitude = function (max) {
 }
 
 /**
+ * Sets this vector's components to new interpolated values between it and the to vector by the provided percent.
+ * @param {Vector2} toV The vector to interpolate to
+ * @param {number} percent The percent to interpolate by (0-1) inclusive
+ * @static
+ */
+Vector2.prototype.lerp = function (toV, percent) {
+  // *** BEGIN INPUT VALIDATION ***
+  try {
+    // If no input was received for the 'toV' parameter.
+    if (toV === undefined) throw "The 'toV' parameter is required!";
+    // If the 'toV' parameter is not a Vector2.
+    if (!toV instanceof Vector2) throw "The 'toV' parameter must be a Vector2 object.";
+    // If no input was received for the 'percent' parameter.
+    if (percent === undefined) throw "The 'percent' parameter is required!";
+    // If the 'percent' parameter is not a number.
+    if (typeof percent !== 'number') throw "The 'percent' parameter must be a number.";
+    // If the 'percent' parameter is not between 0 and 1 (inclusive).
+    if (percent < 0 || percent > 1) throw "The 'percent' parameter must be between 0 and 1 (inclusive).";
+  }
+  catch (e) {
+    console.log(e.message);
+  }
+  // *** END INPUT VALIDATION ***
+
+  /**
+   * Calculate a linearly interpolated vector
+   * between this vector and toV using the formula
+   * fromV + percent * (toV - fromV)
+   */
+  let distance = Vector2.subtract(toV, this);
+  distance.multiply(percent);
+  let result = Vector2.add(this, distance);
+
+  this.x = result.x;
+  this.y = result.y;
+}
+
+/**
  * Creates an instance of a GameObject.
  * @constructor
  * @param {Vector2} position The GameObject's position vector.
@@ -682,8 +723,8 @@ PlayerShip.prototype.constructor = PlayerShip;
 PlayerShip.prototype.update = function () {
   this.velocity.add(this.acceleration);
   this.position.add(this.velocity);
-  this.velocity = Vector2.lerp(this.velocity, Vector2.zero(), 0.01);
-  this.acceleration = Vector2.lerp(this.acceleration, Vector2.zero(), 0.1);
+  this.velocity.lerp(Vector2.zero(), 0.01);
+  this.acceleration.lerp(Vector2.zero(), 0.1);
 
   // Warp to opposite side of game area if bumping against edge.
   if (this.position.x > gameCanvas.width) {
@@ -705,6 +746,7 @@ PlayerShip.prototype.draw = function () {
   let context = gameManager.context;
   let shipWidth = 5;
   let shipHeight = 10;
+
   context.save();
   context.translate(this.position.x, this.position.y);
   let angle = Vector2.angleBetween(Vector2.up(), this.direction);
@@ -718,8 +760,9 @@ PlayerShip.prototype.draw = function () {
   context.lineWidth = 2;
   context.strokeStyle = '#FFFFFF';
   context.stroke();
+
   // If the ship is currently accellerating
-  if (this.acceleration.magnitude() > 0) {
+  if (this.acceleration.magnitude() > 0.04) {
     let thrustWidth = 2.5;
     let thrustMiddle = 2;
     let thrustHeight = 7;
@@ -846,3 +889,21 @@ Asteroid.prototype.draw = function () {
   context.stroke();
   context.restore();
 };
+
+/** @override the draw function from the GameObject superclass */
+Asteroid.prototype.checkCollision = function () {
+  for (let i = 0; i < gameManager.gameObjects.length; i++) {
+    let otherObject = gameManager.gameObjects[i];
+    if (otherObject instanceof Projectile) {
+      let dx = this.position.x - otherObject.position.x;
+      let dy = this.position.y - otherObject.position.y;
+      let distance = Math.sqrt(dx * dx + dy * dy);
+      // If this Asteroid is intersecting with a Projectile
+      if (distance < this.collisionRadius + otherObject.collisionRadius) {
+        // Remove this Asteroid from the array of gameObjects
+        let index = gameManager.gameObjects.indexOf(this);
+        gameManager.gameObjects.splice(index, 1);
+      }
+    }
+  }
+}
