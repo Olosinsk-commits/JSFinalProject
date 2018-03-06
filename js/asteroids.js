@@ -134,11 +134,12 @@ function getInput(e) {
 
 function handleInput(time) {
   let ship = gameManager.playerShip;
-  let acceleration = 3;
-  let rotationAngle = 3 * (Math.PI / 180);
+  let acceleration = 2;
+  let rotationAngle = 4 * (Math.PI / 180);
   if (gameManager.CONTROLS_STATE.up) {
     // Accellerate the ship in the direction it is currently facing.
-    ship.acceleration.add(Vector2.multiply(ship.direction, acceleration));
+    ship.acceleration = Vector2.lerp(ship.acceleration, Vector2.multiply(ship.direction, acceleration), 0.005);
+    ship.acceleration.clampMagnitude(5);
   }
   /*
   if (gameManager.CONTROLS_STATE.down) {
@@ -193,6 +194,15 @@ function Vector2(x, y) {
   // Set the new GameObject's properties.
   this.x = x;
   this.y = y;
+}
+
+/**
+ * Creates a new Vector2 object with the default values for zero.
+ * @return {Vector2} The new Vector2 object.
+ * @static
+ */
+Vector2.zero = function () {
+  return new Vector2(0, 0);
 }
 
 /**
@@ -316,7 +326,35 @@ Vector2.add = function (vectorA, vectorB) {
   // *** END INPUT VALIDATION ***
 
   // Return a new vector with components equal to the sum of the two input vector's components.
-  return new Vector2 (vectorA.x + vectorB.x, vectorA.y + vectorB.y);
+  return new Vector2(vectorA.x + vectorB.x, vectorA.y + vectorB.y);
+}
+
+/**
+ * Subtracts s vector's components from another vector's components
+ * and returns a new Vector2 object with the result.
+ * @param {Vector2} vectorA The first vector to be subtracted.
+ * @param {Vector2} vectorB The second vector to be subtracted.
+ * @return {Vector2} The new vector with the difference of the input's components.
+ */
+Vector2.subtract = function (vectorA, vectorB) {
+  // *** BEGIN INPUT VALIDATION ***
+  try {
+    // If no input was received for the 'vectorA' parameter.
+    if (vectorA === undefined) throw "The 'vectorA' parameter is required!";
+    // If the 'vectorA' parameter is not a Vector2.
+    if (!vectorA instanceof Vector2) throw "The 'vectorA' parameter must be a Vector2 object.";
+    // If no input was received for the 'vectorB' parameter.
+    if (vectorB === undefined) throw "The 'vectorB' parameter is required!";
+    // If the 'vectorB' parameter is not a Vector2.
+    if (!vectorB instanceof Vector2) throw "The 'vectorB' parameter must be a Vector2 object.";
+  }
+  catch (e) {
+    console.log(e.message);
+  }
+  // *** END INPUT VALIDATION ***
+
+  // Return a new vector with components equal to the difference of the two input vector's components.
+  return new Vector2(vectorA.x - vectorB.x, vectorA.y - vectorB.y);
 }
 
 /**
@@ -342,6 +380,47 @@ Vector2.normalize = function (vector) {
   if (m > 0) {
     result = Vector2.multiply(vector, 1/m);
   }
+  return result;
+}
+
+/**
+ * Returns a new vector that has been interpolated by the percent amount between the two input vectors
+ * @param {Vector2} fromV The vector to interpolate from
+ * @param {Vector2} toV The vector to interpolate to
+ * @param {number} percent The percent to interpolate by
+ * @static
+ */
+Vector2.lerp = function (fromV, toV, percent) {
+  // *** BEGIN INPUT VALIDATION ***
+  try {
+    // If no input was received for the 'fromV' parameter.
+    if (fromV === undefined) throw "The 'fromV' parameter is required!";
+    // If the 'fromV' parameter is not a Vector2.
+    if (!fromV instanceof Vector2) throw "The 'fromV' parameter must be a Vector2 object.";
+    // If no input was received for the 'toV' parameter.
+    if (toV === undefined) throw "The 'toV' parameter is required!";
+    // If the 'toV' parameter is not a Vector2.
+    if (!toV instanceof Vector2) throw "The 'toV' parameter must be a Vector2 object.";
+    // If no input was received for the 'percent' parameter.
+    if (percent === undefined) throw "The 'percent' parameter is required!";
+    // If the 'percent' parameter is not a number.
+    if (typeof percent !== 'number') throw "The 'percent' parameter must be a number.";
+    // If the 'percent' parameter is not between 0 and 1 (inclusive).
+    if (percent < 0 || percent > 1) throw "The 'percent' parameter must be between 0 and 1 (inclusive).";
+  }
+  catch (e) {
+    console.log(e.message);
+  }
+  // *** END INPUT VALIDATION ***
+
+  /**
+   * Calculate a linearly interpolated vector
+   * between the fromV and toV using the formula
+   * fromV + percent * (toV - fromV)
+   */
+  let distance = Vector2.subtract(toV, fromV);
+  distance.multiply(percent);
+  let result = Vector2.add(fromV, distance);
   return result;
 }
 
@@ -429,14 +508,6 @@ Vector2.prototype.rotate = function (angle) {
   // *** END INPUT VALIDATION ***
 
   /**
-   * Store the current value of the components
-   * Because the rotation calculations below are
-   * interdependent on each component's value.
-   */
-  let x = this.x;
-  let y = this.y;
-
-  /**
    * Store the result of the cosine and sine of the angle
    * so that the calculation only needs to be done once each
    * before being used in the final formula twice.
@@ -447,8 +518,14 @@ Vector2.prototype.rotate = function (angle) {
   /**
    * Calculate and store the new component values with the rotation applied.
    */
-  this.x = x * cosAngle - y * sinAngle;
-  this.y = x * sinAngle + y * cosAngle;
+  let newX = this.x * cosAngle - this.y * sinAngle;
+  let newY = this.x * sinAngle + this.y * cosAngle;
+
+  /**
+   * Set this vector's new components.
+   */
+  this.x = newX;
+  this.y = newY;
 }
 
 /**
@@ -604,8 +681,9 @@ PlayerShip.prototype.constructor = PlayerShip;
 /** @override The update function from the GameObject superclass */
 PlayerShip.prototype.update = function () {
   this.velocity.add(this.acceleration);
-  this.velocity.clampMagnitude(3);
   this.position.add(this.velocity);
+  this.velocity = Vector2.lerp(this.velocity, Vector2.zero(), 0.01);
+  this.acceleration = Vector2.lerp(this.acceleration, Vector2.zero(), 0.1);
 
   // Warp to opposite side of game area if bumping against edge.
   if (this.position.x > gameCanvas.width) {
@@ -625,8 +703,8 @@ PlayerShip.prototype.update = function () {
 /** @override The draw function from the GameObject superclass */
 PlayerShip.prototype.draw = function () {
   let context = gameManager.context;
-  let shipWidth = 10;
-  let shipHeight = 20;
+  let shipWidth = 5;
+  let shipHeight = 10;
   context.save();
   context.translate(this.position.x, this.position.y);
   let angle = Vector2.angleBetween(Vector2.up(), this.direction);
@@ -637,20 +715,23 @@ PlayerShip.prototype.draw = function () {
   context.lineTo(0, shipWidth);
   context.lineTo(-shipWidth, shipHeight);
   context.lineTo(0, -shipHeight);
-  context.lineWidth = 3;
+  context.lineWidth = 2;
   context.strokeStyle = '#FFFFFF';
   context.stroke();
   // If the ship is currently accellerating
-  if (gameManager.CONTROLS_STATE.up) {
-    let thrustWidth = 5;
-    let thrustHeight = 20;
+  if (this.acceleration.magnitude() > 0) {
+    let thrustWidth = 2.5;
+    let thrustMiddle = 2;
+    let thrustHeight = 7;
+    let shipTail = shipHeight;
     // Draw the thrust flame
     context.beginPath();
-    context.moveTo(0, shipHeight-this.direction.y - thrustWidth);
-    context.lineTo(thrustWidth, thrustHeight);
-    context.lineTo(0, 30);
-    context.lineTo(-thrustWidth, thrustHeight);
-    context.lineTo(0, shipHeight-this.direction.y - thrustWidth);
+    context.moveTo(0, shipTail);
+    context.lineTo(thrustWidth, shipTail + thrustMiddle);
+    context.lineTo(0, shipTail + thrustHeight);
+    context.lineTo(-thrustWidth, shipTail + thrustMiddle);
+    context.lineTo(0, shipTail);
+    //context.lineTo(0, shipTail);
     context.lineWidth = 2;
     context.strokeStyle = '#FFFF00';
     context.stroke();
@@ -693,7 +774,7 @@ Projectile.prototype.update = function () {
 /** @override the draw function from the GameObject superclass */
 Projectile.prototype.draw = function () {
   let context = gameManager.context;
-  let length = 10;
+  let length = 5;
   context.save();
   context.translate(this.position.x, this.position.y);
   let angle = Vector2.angleBetween(Vector2.up(), this.direction);
