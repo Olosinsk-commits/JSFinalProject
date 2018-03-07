@@ -8,7 +8,13 @@
  * Code to play a game of Asteroids.
  */
 
-const KEY_CODES = {32: 'space', 37: 'left', 38: 'up', 39: 'right', 40: 'down'};
+const KEY_CODES = {27: 'escape', 32: 'space', 37: 'left', 38: 'up', 39: 'right', 40: 'down'};
+const FONT_SIZE = 20; // 20px font size
+const BG_COLOR = '#000000'; // Black background color
+const MAIN_COLOR = '#FFFFFF'; // White main color
+const THRUST_COLOR = '#FFFF00'; // Yellow thruster color
+const SHIP_WIDTH = 5;
+const SHIP_HEIGHT = 10;
 
 $(document).ready(function() {
     $(window).keydown(function(e) {
@@ -33,22 +39,24 @@ var gameManager = {
           for (keyCode in KEY_CODES) {
             this.CONTROLS_STATE[KEY_CODES[keyCode]] = false;
           }
+          this.gamePaused = false;
           this.playerLives = 3;
           this.playerScore = 0;
           this.fireRate = 125;
           this.nextFire = 0;
+          this.gameObjects = [];
           this.playerShip = new PlayerShip(new Vector2(this.canvas.width/2, this.canvas.height/2), // position
                                            Vector2.up(), // direction
                                            Vector2.zero(), // velocity
                                            Vector2.zero(), // acceleration
                                            12); // collisionRadius
-          this.gameObjects = [this.playerShip];
+          this.gameObjects.push(this.playerShip);
 
           this.gameObjects.push(new Asteroid(new Vector2(this.canvas.width/3, this.canvas.height/3), // position
                                              Vector2.up(), // direction
                                              Vector2.zero(), // velocity
                                              Vector2.zero(), // acceleration
-                                             10, // collisionRadius
+                                             20, // collisionRadius
                                              3, // numSides
                                              10) // scoreValue
           );
@@ -56,19 +64,19 @@ var gameManager = {
                                              Vector2.up(), // direction
                                              Vector2.zero(), // velocity
                                              Vector2.zero(), // acceleration
-                                             10, // collisionRadius
+                                             25, // collisionRadius
                                              4, // numSides
-                                             10) // scoreValue
+                                             20) // scoreValue
           );
           this.gameObjects.push(new Asteroid(new Vector2(this.canvas.width*2/3, this.canvas.height/3), // position
                                              Vector2.up(), // direction
                                              Vector2.zero(), // velocity
                                              Vector2.zero(), // acceleration
-                                             10, // collisionRadius
+                                             30, // collisionRadius
                                              5, // numSides
-                                             10) // scoreValue
+                                             30) // scoreValue
           );
-          this.showColliders = false;;
+          this.showColliders = false;
           requestAnimationFrame(update);
         } else {
           // Log that we could not get a reference to the context.
@@ -82,15 +90,16 @@ function update(time) {
   drawBackground();
   for (let i = 0; i < gameManager.gameObjects.length; i++) {
     let go = gameManager.gameObjects[i];
-    go.update();
+    if (!gameManager.gamePaused) {
+      go.update();
+      checkCollisions(go);
+    }
     go.draw();
     if (gameManager.showColliders) {
       go.drawCollider();
     }
-    if (go instanceof Asteroid || go instanceof PlayerShip) {
-      go.checkCollision();
-    }
   }
+
   drawLives();
   drawScore();
   requestAnimationFrame(update);
@@ -103,8 +112,55 @@ function update(time) {
 function drawBackground() {
   let context = gameManager.context;
   let canvas = gameManager.canvas;
-  context.fillStyle="#000000";
+  context.fillStyle = BG_COLOR;
   context.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+/**
+ * Checks the collisions of the input game object.
+ */
+function checkCollisions(go) {
+  // *** BEGIN INPUT VALIDATION ***
+  try {
+    // If no input was received for the 'go' parameter.
+    if (go === undefined) throw "The 'go' parameter is required!";
+    // If the 'go' parameter is not a GameObject.
+    if (!go instanceof GameObject) throw "The 'go' parameter must be a GameObject object.";
+  }
+  catch (e) {
+    console.log(e.message);
+  }
+  // *** END INPUT VALIDATION ***
+
+  if (go instanceof Asteroid) {
+    // Get the Projectile this collided with (if any)
+    let collidedWithProjectile = go.checkCollisionWith(Projectile);
+    if (collidedWithProjectile) {
+      // Remove this Asteroid from the array of gameObjects
+      let index = gameManager.gameObjects.indexOf(go);
+      gameManager.gameObjects.splice(index, 1);
+      // Remove the projectile from the array of gameObjects
+      index = gameManager.gameObjects.indexOf(collidedWithProjectile);
+      gameManager.gameObjects.splice(index, 1);
+      // Increase the player's score by this Asteroid's score value.
+      gameManager.playerScore += go.scoreValue;
+    }
+  }
+
+  if (go instanceof PlayerShip) {
+    // Get the Asteroid this collided with (if any)
+    let collidedWithAsteroid = go.checkCollisionWith(Asteroid)
+    if (collidedWithAsteroid) {
+      // Move the player ship to the starting position and remove a life.
+      go.position.x = gameManager.canvas.width/2;
+      go.position.y = gameManager.canvas.height/2;
+      go.direction = Vector2.up();
+      go.velocity = Vector2.zero();
+      go.acceleration = Vector2.zero();
+      // Decrease the player's lives by 1.
+      gameManager.playerLives--;
+    }
+  }
 }
 
 /**
@@ -113,30 +169,26 @@ function drawBackground() {
 function drawLives() {
   let canvas = gameManager.canvas;
   let context = gameManager.context;
-  let fontSize = 20;
-  context.font = fontSize + "px Arial";
+  context.font = FONT_SIZE + "px Arial";
   context.fillStyle = "#FFFFFF";
   context.textAlign = "left";
   let livesText = "Lives: ";
   let textWidth = context.measureText(livesText).width;
-  context.fillText(livesText, 2, fontSize * 2);
-
-  let shipWidth = 5;
-  let shipHeight = 10;
+  context.fillText(livesText, 2, FONT_SIZE * 2);
 
   // Loop 'playerLives' times to draw the ship avatar once per life.
   for (let i = 0; i < gameManager.playerLives; i++) {
     context.save();
     // Offset the position from the lives text by a multiple of the ship's width to space them out evenly.
-    context.translate(textWidth + (2 * shipWidth) + (4 * shipWidth * i), fontSize * 2);
+    context.translate(textWidth + (2 * SHIP_WIDTH) + (4 * SHIP_WIDTH * i), FONT_SIZE * 2);
     context.beginPath();
-    context.moveTo(0, -shipHeight);
-    context.lineTo(shipWidth, shipHeight);
-    context.lineTo(0, shipWidth);
-    context.lineTo(-shipWidth, shipHeight);
-    context.lineTo(0, -shipHeight);
+    context.moveTo(0, -SHIP_HEIGHT);
+    context.lineTo(SHIP_WIDTH, SHIP_HEIGHT);
+    context.lineTo(0, SHIP_WIDTH);
+    context.lineTo(-SHIP_WIDTH, SHIP_HEIGHT);
+    context.lineTo(0, -SHIP_HEIGHT);
     context.lineWidth = 2;
-    context.strokeStyle = '#FFFFFF';
+    context.strokeStyle = MAIN_COLOR;
     context.stroke();
     context.restore();
   }
@@ -148,12 +200,11 @@ function drawLives() {
 function drawScore() {
   let context = gameManager.context;
   let canvas = gameManager.canvas;
-  let fontSize = 20;
-  context.font = fontSize + "px Arial";
+  context.font = FONT_SIZE + "px Arial";
   context.fillStyle = "#FFFFFF";
   context.textAlign = "left";
   let scoreText = "Score: " + gameManager.playerScore;
-  context.fillText(scoreText, 0, fontSize);
+  context.fillText(scoreText, 0, FONT_SIZE);
 }
 
 /**
@@ -172,35 +223,46 @@ function getInput(e) {
 function handleInput(time) {
   let ship = gameManager.playerShip;
   let acceleration = 2;
-  let rotationAngle = 4 * (Math.PI / 180);
-  if (gameManager.CONTROLS_STATE.up) {
-    // Accellerate the ship in the direction it is currently facing.
-    ship.acceleration = Vector2.lerp(ship.acceleration, Vector2.multiply(ship.direction, acceleration), 0.005);
-    ship.acceleration.clampMagnitude(3);
+  let rotationAngle = 3 * (Math.PI / 180);
+  if (gameManager.CONTROLS_STATE.escape) {
+    // Pause the game.
+    gameManager.gamePaused = !gameManager.gamePaused;
   }
-  /*
-  if (gameManager.CONTROLS_STATE.down) {
-    // do nothing.
-  }
-  */
-  if (gameManager.CONTROLS_STATE.left) {
-    ship.direction.rotate(-rotationAngle);
-  }
-  if (gameManager.CONTROLS_STATE.right) {
-    ship.direction.rotate(rotationAngle);
-  }
-  if (gameManager.CONTROLS_STATE.space) {
-    // If enough time has passed between the last fire and this one
-    if (time > gameManager.nextFire) {
-        gameManager.nextFire = time + gameManager.fireRate;
-        let projectileVelocity = 3;
-        let proj = new Projectile(Vector2.add(ship.position, Vector2.multiply(ship.direction, ship.collisionRadius)), // position
-                                  new Vector2(ship.direction.x, ship.direction.y), // direction
-                                  Vector2.multiply(ship.direction, projectileVelocity), // velocity
-                                  Vector2.zero(), // acceleration
-                                  1); // collisionRadius
-        gameManager.gameObjects.push(proj);
+  if (!gameManager.gamePaused) {
+    if (gameManager.CONTROLS_STATE.up) {
+      // Accellerate the ship in the direction it is currently facing.
+      ship.acceleration = Vector2.lerp(ship.acceleration, Vector2.multiply(ship.direction, acceleration), 0.005);
+      ship.acceleration.clampMagnitude(3);
     }
+    /*
+    if (gameManager.CONTROLS_STATE.down) {
+      // do nothing.
+    }
+    */
+    if (gameManager.CONTROLS_STATE.left) {
+      ship.direction.rotate(-rotationAngle);
+    }
+    if (gameManager.CONTROLS_STATE.right) {
+      ship.direction.rotate(rotationAngle);
+    }
+    if (gameManager.CONTROLS_STATE.space) {
+      // If enough time has passed between the last fire and this one
+      if (time > gameManager.nextFire) {
+          gameManager.nextFire = time + gameManager.fireRate;
+          let projectileVelocity = 3;
+          let proj = new Projectile(Vector2.add(ship.position, Vector2.multiply(ship.direction, ship.collisionRadius)), // position
+                                    new Vector2(ship.direction.x, ship.direction.y), // direction
+                                    Vector2.multiply(ship.direction, projectileVelocity + ship.velocity.magnitude()), // velocity
+                                    Vector2.zero(), // acceleration
+                                    1); // collisionRadius
+          gameManager.gameObjects.push(proj);
+      }
+    }
+  } else {
+    if (gameManager.CONTROLS_STATE.up) {gameManager.CONTROLS_STATE.up = false;}
+    if (gameManager.CONTROLS_STATE.left) {gameManager.CONTROLS_STATE.left = false;}
+    if (gameManager.CONTROLS_STATE.right) {gameManager.CONTROLS_STATE.right = false;}
+    if (gameManager.CONTROLS_STATE.space) {gameManager.CONTROLS_STATE.space = false;}
   }
 }
 
@@ -723,14 +785,47 @@ GameObject.prototype.draw = function () {
   }
 };
 
-// Abstract checkCollision method for the GameObject base class.
-GameObject.prototype.checkCollision = function () {
+/**
+ * Checks whether this game object collided with another game object that matches otherObjectType.
+ * @param {GameObject} otherObjectType Takes the constructor name of the object to check collision with.
+ * @return {?GameObject} The matching object that collided with this one.
+ */
+GameObject.prototype.checkCollisionWith = function (otherObjectType) {
+  // *** BEGIN INPUT VALIDATION ***
   try {
-    throw "Cannot instantiate abstract class";
+    // If no input was received for the 'otherObjectType' parameter.
+    if (otherObjectType === undefined) throw "The 'otherObjectType' parameter is required!";
+    // If the 'otherObjectType' parameter is not a GameObject.
+    if (!otherObjectType instanceof GameObject) throw "The 'otherObjectType' parameter must be a GameObject object.";
   }
   catch (e) {
     console.log(e.message);
   }
+  // *** END INPUT VALIDATION ***
+
+  // Variable to store a reference to the object this collided with. Initialized to null to signify no collision.
+  let collidedWith = null;
+
+  /**
+   * Loop through the other game objects and check for any object that
+   * matches the input type, and whether it is intersecting with this object.
+   */
+  for (let i = 0; i < gameManager.gameObjects.length; i++) {
+    let otherObject = gameManager.gameObjects[i];
+    // If the otherObject matches the prototype of the otherObjectType
+    if (otherObjectType.prototype.isPrototypeOf(otherObject)) {
+      let dx = this.position.x - otherObject.position.x;
+      let dy = this.position.y - otherObject.position.y;
+      let distance = Math.sqrt(dx * dx + dy * dy);
+      // If this GameObject is intersecting with the other object
+      if (distance < this.collisionRadius + otherObject.collisionRadius) {
+        collidedWith = otherObject;
+        break;
+      }
+    }
+  }
+
+  return collidedWith;
 };
 
 // Draws a circle representing the collisionRadius
@@ -742,7 +837,7 @@ GameObject.prototype.drawCollider = function () {
   context.arc(this.position.x,this.position.y,this.collisionRadius,0,2*Math.PI);
   context.stroke();
   context.lineWidth = 2;
-  context.strokeStyle = '#FFFFFF';
+  context.strokeStyle = MAIN_COLOR;
   context.stroke();
   context.restore();
 };
@@ -788,21 +883,18 @@ PlayerShip.prototype.update = function () {
 /** @override The draw function from the GameObject superclass */
 PlayerShip.prototype.draw = function () {
   let context = gameManager.context;
-  let shipWidth = 5;
-  let shipHeight = 10;
-
   context.save();
   context.translate(this.position.x, this.position.y);
   let angle = Vector2.angleBetween(Vector2.up(), this.direction);
   context.rotate(angle);
   context.beginPath();
-  context.moveTo(this.direction.x, this.direction.y-shipHeight);
-  context.lineTo(shipWidth, shipHeight);
-  context.lineTo(0, shipWidth);
-  context.lineTo(-shipWidth, shipHeight);
-  context.lineTo(0, -shipHeight);
+  context.moveTo(this.direction.x, this.direction.y-SHIP_HEIGHT);
+  context.lineTo(SHIP_WIDTH, SHIP_HEIGHT);
+  context.lineTo(0, SHIP_WIDTH);
+  context.lineTo(-SHIP_WIDTH, SHIP_HEIGHT);
+  context.lineTo(0, -SHIP_HEIGHT);
   context.lineWidth = 2;
-  context.strokeStyle = '#FFFFFF';
+  context.strokeStyle = MAIN_COLOR;
   context.stroke();
 
   // If the ship is currently accellerating draw the thruster flame.
@@ -810,7 +902,7 @@ PlayerShip.prototype.draw = function () {
     let thrustWidth = 2.5;
     let thrustMiddle = 2;
     let thrustHeight = 7;
-    let shipTail = shipHeight;
+    let shipTail = SHIP_HEIGHT;
     // Draw the thrust flame
     context.beginPath();
     context.moveTo(0, shipTail);
@@ -820,35 +912,11 @@ PlayerShip.prototype.draw = function () {
     context.lineTo(0, shipTail);
     //context.lineTo(0, shipTail);
     context.lineWidth = 2;
-    context.strokeStyle = '#FFFF00';
+    context.strokeStyle = THRUST_COLOR;
     context.stroke();
   }
   context.restore();
 };
-
-/** @override the checkCollision function from the GameObject superclass */
-PlayerShip.prototype.checkCollision = function () {
-  // Loop through the other game objects and check whether any of their colliders intersect
-  for (let i = 0; i < gameManager.gameObjects.length; i++) {
-    let otherObject = gameManager.gameObjects[i];
-    if (otherObject instanceof Asteroid) {
-      let dx = this.position.x - otherObject.position.x;
-      let dy = this.position.y - otherObject.position.y;
-      let distance = Math.sqrt(dx * dx + dy * dy);
-      // If this PlayerShip is intersecting with an Asteroid
-      if (distance < this.collisionRadius + otherObject.collisionRadius) {
-        // Move the player ship to the starting position and remove a life.
-        this.position.x = gameManager.canvas.width/2;
-        this.position.y = gameManager.canvas.height/2;
-        this.direction = Vector2.up();
-        this.velocity = Vector2.zero();
-        this.acceleration = Vector2.zero();
-        // Decrease the player's lives by 1.
-        gameManager.playerLives--;
-      }
-    }
-  }
-}
 
 /**
  * Creates an instance of a Projectile.
@@ -894,7 +962,7 @@ Projectile.prototype.draw = function () {
   context.moveTo(0, 0);
   context.lineTo(0, length);
   context.lineWidth = 2;
-  context.strokeStyle = '#FFFFFF';
+  context.strokeStyle = MAIN_COLOR;
   context.stroke();
   context.restore();
 };
@@ -965,40 +1033,29 @@ Asteroid.prototype.update = function () {
 /** @override the draw function from the GameObject superclass */
 Asteroid.prototype.draw = function () {
   let context = gameManager.context;
-  let length = 10;
   context.save();
   context.translate(this.position.x, this.position.y);
   let angle = Vector2.angleBetween(Vector2.up(), this.direction);
   context.rotate(angle);
   context.beginPath();
-  context.moveTo(0, length);
-  context.lineTo(length, 0);
-  context.lineTo(0, -length);
-  context.lineTo(-length, 0);
-  context.lineTo(0, length);
+  let polygonPointVector = Vector2.multiply(Vector2.up(), this.collisionRadius);
+  context.moveTo(polygonPointVector.x, polygonPointVector.y);
+  angle = (2 * Math.PI) / this.numSides;
+  for (let i = 0; i <= this.numSides; i++) {
+    context.lineTo(polygonPointVector.x, polygonPointVector.y);
+    polygonPointVector.rotate(angle);
+  }
   context.lineWidth = 2;
-  context.strokeStyle = '#FFFFFF';
+  context.strokeStyle = MAIN_COLOR;
   context.stroke();
   context.restore();
 };
 
-/** @override the checkCollision function from the GameObject superclass */
-Asteroid.prototype.checkCollision = function () {
-  // Loop through the other game objects and check whether any of their colliders intersect
-  for (let i = 0; i < gameManager.gameObjects.length; i++) {
-    let otherObject = gameManager.gameObjects[i];
-    if (otherObject instanceof Projectile) {
-      let dx = this.position.x - otherObject.position.x;
-      let dy = this.position.y - otherObject.position.y;
-      let distance = Math.sqrt(dx * dx + dy * dy);
-      // If this Asteroid is intersecting with a Projectile
-      if (distance < this.collisionRadius + otherObject.collisionRadius) {
-        // Remove this Asteroid from the array of gameObjects
-        let index = gameManager.gameObjects.indexOf(this);
-        gameManager.gameObjects.splice(index, 1);
-        // Increase the player's score by this Asteroid's score value.
-        gameManager.playerScore += this.scoreValue;
-      }
-    }
-  }
+/**
+ * Creates a new Vector2 object with the default values for zero.
+ * @return {Vector2} The new Vector2 object.
+ * @static
+ */
+Asteroid.small = function () {
+  return new Vector2(0, 0);
 }
