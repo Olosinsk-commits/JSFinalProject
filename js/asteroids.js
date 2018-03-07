@@ -9,7 +9,8 @@
  */
 
 const KEY_CODES = {27: 'escape', 32: 'space', 37: 'left', 38: 'up', 39: 'right', 40: 'down'};
-const FONT_SIZE = 20; // 20px font size
+const HUD_FONT_SIZE = 20; // 20px font size
+const MENU_FONT_SIZE = 40; // 20px font size
 const BG_COLOR = '#000000'; // Black background color
 const MAIN_COLOR = '#FFFFFF'; // White main color
 const THRUST_COLOR = '#FFFF00'; // Yellow thruster color
@@ -34,10 +35,13 @@ var gameManager = {
         if (this.canvas.getContext) {
           this.context = this.canvas.getContext('2d');
           // Array to store the controls states
-          this.CONTROLS_STATE = {};
+          this.CONTROLS_STATE = [];
+          // Array to store whether the control is being held down
+          this.CONTROLS_HELD = [];
           // Initialize the array with the keys as all being false
           for (keyCode in KEY_CODES) {
             this.CONTROLS_STATE[KEY_CODES[keyCode]] = false;
+            this.CONTROLS_HELD[KEY_CODES[keyCode]] = false;
           }
           this.gamePaused = false;
           this.playerLives = 3;
@@ -88,9 +92,14 @@ var gameManager = {
 function update(time) {
   handleInput(time);
   drawBackground();
+
+  // Loop over all GameObjects in the gameManager array
   for (let i = 0; i < gameManager.gameObjects.length; i++) {
+    // Get the current GameObject from the gameManager array
     let go = gameManager.gameObjects[i];
+    // If the game is not paused
     if (!gameManager.gamePaused) {
+      // Update and check the collisions of the current GameObject
       go.update();
       checkCollisions(go);
     }
@@ -102,6 +111,10 @@ function update(time) {
 
   drawLives();
   drawScore();
+
+  if (gameManager.gamePaused) {
+    drawMenu();
+  }
   requestAnimationFrame(update);
 }
 
@@ -169,18 +182,18 @@ function checkCollisions(go) {
 function drawLives() {
   let canvas = gameManager.canvas;
   let context = gameManager.context;
-  context.font = FONT_SIZE + "px Arial";
-  context.fillStyle = "#FFFFFF";
+  context.font = HUD_FONT_SIZE + "px Arial";
+  context.fillStyle = MAIN_COLOR;
   context.textAlign = "left";
   let livesText = "Lives: ";
   let textWidth = context.measureText(livesText).width;
-  context.fillText(livesText, 2, FONT_SIZE * 2);
+  context.fillText(livesText, 2, HUD_FONT_SIZE * 2);
 
   // Loop 'playerLives' times to draw the ship avatar once per life.
   for (let i = 0; i < gameManager.playerLives; i++) {
     context.save();
     // Offset the position from the lives text by a multiple of the ship's width to space them out evenly.
-    context.translate(textWidth + (2 * SHIP_WIDTH) + (4 * SHIP_WIDTH * i), FONT_SIZE * 2);
+    context.translate(textWidth + (2 * SHIP_WIDTH) + (4 * SHIP_WIDTH * i), HUD_FONT_SIZE * 2);
     context.beginPath();
     context.moveTo(0, -SHIP_HEIGHT);
     context.lineTo(SHIP_WIDTH, SHIP_HEIGHT);
@@ -200,11 +213,30 @@ function drawLives() {
 function drawScore() {
   let context = gameManager.context;
   let canvas = gameManager.canvas;
-  context.font = FONT_SIZE + "px Arial";
-  context.fillStyle = "#FFFFFF";
+  context.font = HUD_FONT_SIZE + "px Arial";
+  context.fillStyle = MAIN_COLOR;
   context.textAlign = "left";
   let scoreText = "Score: " + gameManager.playerScore;
-  context.fillText(scoreText, 0, FONT_SIZE);
+  context.fillText(scoreText, 0, HUD_FONT_SIZE);
+}
+
+/**
+ * Draws the game's pause menu.
+ */
+function drawMenu() {
+  let context = gameManager.context;
+  let canvas = gameManager.canvas;
+  context.save();
+  context.globalAlpha = 0.6;
+  drawBackground();
+  context.globalAlpha = 1;
+  context.font = MENU_FONT_SIZE + "px Arial";
+  context.fillStyle = MAIN_COLOR;
+  context.textAlign = "center";
+  context.translate(canvas.width/2, canvas.height/2);
+  let scoreText = "Paused";
+  context.fillText(scoreText, 0, HUD_FONT_SIZE);
+  context.restore();
 }
 
 /**
@@ -216,7 +248,13 @@ function getInput(e) {
     // Prevent the default so that the page does not scroll or lose focus.
     e.preventDefault();
     // Convert from the key code to the control and set the state based on whether the type of the even was keydown.
-    gameManager.CONTROLS_STATE[KEY_CODES[e.keyCode]] = e.type === "keydown" ? true : false;
+    if (e.type === "keydown") {
+      gameManager.CONTROLS_STATE[KEY_CODES[e.keyCode]] = true;
+    }
+    else if (e.type === "keyup") {
+      gameManager.CONTROLS_STATE[KEY_CODES[e.keyCode]] = false;
+      gameManager.CONTROLS_HELD[KEY_CODES[e.keyCode]] = false;
+    }
   }
 }
 
@@ -224,7 +262,8 @@ function handleInput(time) {
   let ship = gameManager.playerShip;
   let acceleration = 2;
   let rotationAngle = 3 * (Math.PI / 180);
-  if (gameManager.CONTROLS_STATE.escape) {
+  if (gameManager.CONTROLS_STATE.escape && !gameManager.CONTROLS_HELD.escape) {
+    gameManager.CONTROLS_HELD.escape = true;
     // Pause the game.
     gameManager.gamePaused = !gameManager.gamePaused;
   }
