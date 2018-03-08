@@ -2,6 +2,7 @@
 //store reference variables for <canvas> tag
 var canvas = document.getElementById('canvas');
 var context = canvas.getContext('2d');
+
 //variable for frog sprite
 
 var frogAvatar = new Image();
@@ -100,8 +101,8 @@ var logX8 = 500;
 var logY8 = 48;
 
 //lily pads
-var lilyWidth = 30;
-var lilyHeight = 30;
+var lilyWidth = 50;
+var lilyHeight = 50;
 
 var lilyX1 = 20;
 var lilyY1 = 4;
@@ -120,6 +121,48 @@ var lilyY5 = 4;
 
 var lilyX6 = 520;
 var lilyY6 = 4;
+
+var padWidth = 30;
+var padHeight = 30;
+	//pad 1
+var padX1 = 20;
+var padY1 = 4;
+
+	//pad 2
+var padX2 = 120;
+var padY2 = 4;
+
+	//pad 3
+var padX3 = 220;
+var padY3 = 4;
+
+	//pad 4
+var padX4 = 320;
+var padY4 = 4;
+
+	//pad 5
+var padX5 = 420;
+var padY5 = 4;
+
+	//pad 6
+var padX6 = 520;
+var padY6 = 4;
+
+	
+var pad1 = false;
+var pad2 = false;
+var pad3 = false;
+var pad4 = false;
+var pad5 = false;
+var pad6 = false;
+
+	//Lives trackers
+var lives = 3;
+var livesLost = 0;
+
+	//Win/loss counter
+var play = true;
+var victoryCondition = false;
 
 //variables for drawImage Method
 var sx = 0;
@@ -351,6 +394,7 @@ function runOver() {
 				carsY[i] + carHeight >= y &&
 				carsY[i] <= y + height) {
 			y = 488;
+			livesLost++;
 		}
 	}
 }
@@ -501,21 +545,134 @@ function runOver() {
 		}
 		else if (y < 220) {
 			y = 488; //reset frog's position to the bottom
+			livesLost++;
 		}
 	}
+
+//function for drawing lilypads
+function drawPads() {
+	context.fillStyle = "seagreen";
+	var padsX = [padX1, padX2, padX3, padX4, padX5, padX6];
+	var padsY = [padY1, padY2, padY3, padY4, padY5, padY6];
+		
+	for (i = 0; i < padsX.length; i++) {
+		context.fillRect(padsX[i], padsY[i], padWidth, padHeight);
+	}
+}
+
+function onPad() {
+	if (padX1 <= x + width &&
+		padX1 + padWidth >= x &&
+		padY1 + padHeight >= y &&
+		padY1 <= y + height) {
+			pad1 = true;
+			y = 488;
+		}
+	else if (padX2 <= x + width &&
+		padX2 + padWidth >= x &&
+		padY2 + padHeight >= y &&
+		padY2 <= y + height) {
+			pad2 = true;
+			y = 488;
+		}
+	else if (padX3 <= x + width &&
+		padX3 + padWidth >= x &&
+		padY3 + padHeight >= y &&
+		padY3 <= y + height) {
+			pad3 = true;
+			y = 488;
+		}
+	else if (padX4 <= x + width &&
+		padX4 + padWidth >= x &&
+		padY4 + padHeight >= y &&
+		padY4 <= y + height) {
+			pad4 = true;
+			y = 488;
+		}
+	else if (padX5 <= x + width &&
+		padX5 + padWidth >= x &&
+		padY5 + padHeight >= y &&
+		padY5 <= y + height) {
+			pad5 = true;
+			y = 488;
+		}
+	else if (padX6 <= x + width &&
+		padX6 + padWidth >= x &&
+		padY6 + padHeight >= y &&
+		padY6 <= y + height) {
+			pad6 = true;
+			y = 488;
+		}
+	else if (y < 48) {
+		y = 488;
+		livesLost++;
+	}
+	
+}
+function drawLives() {
+	//count and display lives left
+	if (lives - livesLost != 0) {
+		context.fillStyle = "white";
+		context.font = "30px Arial";
+		context.fillText("Lives: " + (lives - livesLost), (canvas.width/2)-70, 525);
+	}
+}
+
+function gameOver() {
+	if (lives - livesLost == 0) {
+		context.save();
+		play = false;
+		context.fillStyle = "white";
+		context.font = "72px Arial";
+		context.fillText("GAME OVER", 0, 100);
+		context.font = "28px Arial";
+		context.fillText("Refresh to play again!");
+		context.restore();
+	}
+}
+
+function victory() {
+	if (pad1 || pad2 || pad3 || pad4 || pad5 || pad6) {
+			//print you won
+		victoryCondition = true;
+		play = false;	
+	}
+}	
+
+function victoryScreen() {
+		context.fillStyle = "white";
+		context.font = "30px Arial";
+		context.textAlign = "center";
+		context.fillText("You Won! Refresh page to play again.", (canvas.width/2), canvas.height/2);
+}
 
 //game drawing function
 function draw() {
 	context.clearRect(0, 0, canvas.width, canvas.height); /*clears the previous iteration of the frog and redraws a new one.*/
+	
 	drawBackground();
 	drawLogs();
-	moveLogs();
 	drawFrog();
-	moveFrog();
 	drawCars();
+	drawPads();
+	drawLives();
+	
+	if (play) {
+	moveLogs();
+	moveFrog();
 	moveCars();
 	runOver();
+	onPad();
 	floatLogs();
+	victory();
+
+	
+}
+	if (victoryCondition) {
+		gameOver();
+		drawLives();
+		victoryScreen(); 
+	}
 	requestAnimationFrame(draw); //refreshes based on the the user's refresh rate.
 }
 
