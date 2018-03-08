@@ -45,6 +45,7 @@ var gameManager = {
             this.CONTROLS_HELD[KEY_CODES[keyCode]] = false;
           }
           this.gamePaused = false;
+          this.gameJustStarted = true;
           this.playerLives = 3;
           this.playerScore = 0;
           this.fireRate = 125;
@@ -216,9 +217,9 @@ function drawScore() {
 }
 
 /**
- * Draws the game's pause menu.
+ * Draws the game's game lost menu.
  */
-function drawStartMenu() {
+function drawGameLostMenu() {
   let context = gameManager.context;
   let canvas = gameManager.canvas;
   context.save();
@@ -229,10 +230,53 @@ function drawStartMenu() {
   context.fillStyle = MAIN_COLOR;
   context.textAlign = "center";
   context.translate(canvas.width/2, canvas.height/4);
-  let menuText = "Asteroids";
+  let menuText = "You lost!";
   context.fillText(menuText, 0, MENU_FONT_SIZE);
+  context.font = HUD_FONT_SIZE + "px Arial";
+  let spacing = context.measureText(menuText).height;
+  context.translate(0, canvas.height/8);
+  menuText = "(Press Escape to start new game)";
+  context.fillText(menuText, 0, 0);
   context.restore();
 }
+
+/**
+ * Draws the game's start menu.
+ */
+ function drawStartMenu() {
+   let context = gameManager.context;
+   let canvas = gameManager.canvas;
+   context.save();
+   context.globalAlpha = 0.6;
+   drawBackground();
+   context.globalAlpha = 1;
+   context.font = MENU_FONT_SIZE + "px Arial";
+   context.fillStyle = MAIN_COLOR;
+   context.textAlign = "center";
+   context.translate(canvas.width/2, canvas.height/4);
+   let menuText = "Asteroids";
+   context.fillText(menuText, 0, MENU_FONT_SIZE);
+   context.font = HUD_FONT_SIZE + "px Arial";
+   context.translate(0, canvas.height/8);
+   menuText = "Controls:";
+   context.fillText(menuText, 0, 0);
+   context.translate(0, canvas.height/16);
+   menuText = "Pause: [Escape]";
+   context.fillText(menuText, 0, 0);
+   context.translate(0, canvas.height/16);
+   menuText = "Turn Left / Right : ← / →";
+   context.fillText(menuText, 0, 0);
+   context.translate(0, canvas.height/16);
+   menuText = "Move forward: ↑";
+   context.fillText(menuText, 0, 0);
+   context.translate(0, canvas.height/16);
+   menuText = "Fire weapon: [Space Bar]"
+   context.fillText(menuText, 0, 0);
+   context.translate(0, canvas.height/8);
+   menuText = "Press [Space Bar] to begin game!"
+   context.fillText(menuText, 0, 0);
+   context.restore();
+ }
 
 /**
  * Draws the game's pause menu.
@@ -249,10 +293,25 @@ function drawPauseMenu() {
   context.textAlign = "center";
   context.translate(canvas.width/2, canvas.height/2);
   let menuText = "Paused";
-  context.fillText(menuText, 0, 0);
-  context.translate(0, canvas.height/8);
+  context.fillText(menuText, 0, -MENU_FONT_SIZE);
+  context.translate(0, canvas.height/16);
   context.font = HUD_FONT_SIZE + "px Arial";
   menuText = "(Press Escape to resume)";
+  context.fillText(menuText, 0, 0);
+  context.translate(0, canvas.height/8);
+  menuText = "Controls:";
+  context.fillText(menuText, 0, 0);
+  context.translate(0, canvas.height/16);
+  menuText = "Pause: [Escape]";
+  context.fillText(menuText, 0, 0);
+  context.translate(0, canvas.height/16);
+  menuText = "Turn Left / Right : ← / →";
+  context.fillText(menuText, 0, 0);
+  context.translate(0, canvas.height/16);
+  menuText = "Move forward: ↑";
+  context.fillText(menuText, 0, 0);
+  context.translate(0, canvas.height/16);
+  menuText = "Fire weapon: [Space Bar]"
   context.fillText(menuText, 0, 0);
   context.restore();
 }
@@ -291,11 +350,6 @@ function handleInput(time) {
       ship.acceleration = Vector2.lerp(ship.acceleration, Vector2.multiply(ship.direction, acceleration), 0.005);
       ship.acceleration.clampMagnitude(3);
     }
-    /*
-    if (gameManager.CONTROLS_STATE.down) {
-      // do nothing.
-    }
-    */
     if (gameManager.CONTROLS_STATE.left) {
       ship.direction.rotate(-rotationAngle);
     }
