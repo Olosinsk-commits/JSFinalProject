@@ -23,18 +23,23 @@ $(document).ready(function() {
     }).keyup(function(e) {
       getInput(e);
     });
-    $('#gameContainer').prepend();
     gameManager.start();
   });
 
 var gameManager = {
-    // Get reference to game canvas.
-    canvas : null,
-    start : function() {
-        this.canvas = $("#gameCanvas").get(0);
+    // Variable to store reference to game canvas.
+    canvas: null,
+    start: function () {
+        // If we do not already have a reference to the canvas.
+        if (!this.canvas) {
+          this.canvas = $("#gameCanvas").get(0);
+        }
         // Check whether canvas is available in the browser.
         if (this.canvas.getContext) {
-          this.context = this.canvas.getContext('2d');
+          // If we do not already have a reference to the context.
+          if (!this.context) {
+            this.context = this.canvas.getContext('2d');
+          }
           // Array to store the controls states
           this.CONTROLS_STATE = [];
           // Array to store whether the control is being held down
@@ -44,11 +49,14 @@ var gameManager = {
             this.CONTROLS_STATE[KEY_CODES[keyCode]] = false;
             this.CONTROLS_HELD[KEY_CODES[keyCode]] = false;
           }
+          this.gameBegin = true;
+          this.gameOver = false;
           this.gamePaused = false;
           this.playerLives = 3;
           this.playerScore = 0;
           this.fireRate = 125;
           this.nextFire = 0;
+          this.showColliders = false;
           this.gameObjects = [];
           this.playerShip = new PlayerShip(new Vector2(this.canvas.width/2, this.canvas.height/2), // position
                                            Vector2.up(), // direction
@@ -56,24 +64,102 @@ var gameManager = {
                                            Vector2.zero(), // acceleration
                                            12); // collisionRadius
           this.gameObjects.push(this.playerShip);
-          let smallAsteroid = Asteroid.createSmall();
-          let mediumAsteroid = Asteroid.createMedium();
-          let largeAsteroid = Asteroid.createLarge();
 
-          smallAsteroid.position = new Vector2(this.canvas.width/3, this.canvas.height/3);
-          mediumAsteroid.position = new Vector2(this.canvas.width/2, this.canvas.height/3);
-          largeAsteroid.position = new Vector2(this.canvas.width*2/3, this.canvas.height/3);
-
-          this.gameObjects.push(smallAsteroid);
-          this.gameObjects.push(mediumAsteroid);
-          this.gameObjects.push(largeAsteroid);
-
-          this.showColliders = false;
           requestAnimationFrame(update);
         } else {
           // Log that we could not get a reference to the context.
           console.log("Could not get canvas context. Browser does not support HTML5 canvas.");
         }
+    },
+    reset: function () {
+      // Array to store the controls states
+      this.CONTROLS_STATE = [];
+      // Array to store whether the control is being held down
+      this.CONTROLS_HELD = [];
+      // Initialize the array with the keys as all being false
+      for (keyCode in KEY_CODES) {
+        this.CONTROLS_STATE[KEY_CODES[keyCode]] = false;
+        this.CONTROLS_HELD[KEY_CODES[keyCode]] = false;
+      }
+      this.gameBegin = true;
+      this.gameOver = false;
+      this.gamePaused = false;
+      this.playerLives = 3;
+      this.playerScore = 0;
+      this.fireRate = 125;
+      this.nextFire = 0;
+      this.showColliders = false;
+      this.gameObjects = [];
+      this.playerShip = new PlayerShip(new Vector2(this.canvas.width/2, this.canvas.height/2), // position
+                                       Vector2.up(), // direction
+                                       Vector2.zero(), // velocity
+                                       Vector2.zero(), // acceleration
+                                       12); // collisionRadius
+      this.gameObjects.push(this.playerShip);
+    },
+    asteroidManager: {
+      numAsteroidsSpawn: 3,
+      spawnWave: function () {
+        for (let i = 0; i < this.numAsteroidsSpawn; i++) {
+          let as = Asteroid.createLarge();
+          as.position = new Vector2(Math.random() * gameManager.canvas.width,
+                                    Math.random() * gameManager.canvas.height);
+          as.velocity = Vector2.random();
+          gameManager.gameObjects.push(as);
+        }
+      },
+      /**
+       * Callback for when an Asteroid is destroyed
+       * to check whether a new wave needs to be spawned.
+       */
+      onAsteroidDestroy: function (as) {
+        // *** BEGIN INPUT VALIDATION ***
+        try {
+          // If no input was received for the 'as' parameter.
+          if (as === undefined) throw "The 'as' parameter is required!";
+          // If the 'as' parameter is not an Asteroid.
+          if (!as instanceof Asteroid) throw "The 'as' parameter must be a Asteroid object.";
+        }
+        catch (e) {
+          console.log(e);
+        }
+        // *** END INPUT VALIDATION ***
+
+        // If this is not the smallest asteroid size
+        if (as.numSides !== Asteroid.smallNumSides) {
+          // Create two smaller asteroids
+          for (let i = 0; i < 2; i++) {
+            let newAsteroid = null;
+            if (as.numSides === Asteroid.largeNumSides) {
+              newAsteroid = Asteroid.createMedium();
+            }
+            else if (as.numSides === Asteroid.mediumNumSides) {
+              newAsteroid = Asteroid.createSmall();
+            }
+            newAsteroid.position = new Vector2(as.position.x, as.position.y);
+            newAsteroid.velocity = Vector2.random();
+            gameManager.gameObjects.push(newAsteroid);
+          }
+        }
+
+
+        let asteroidCount = 0;
+        // Loop over all GameObjects in the gameManager array
+        for (let i = 0; i < gameManager.gameObjects.length; i++) {
+          // Get the current GameObject from the gameManager array
+          let go = gameManager.gameObjects[i];
+          if (go instanceof Asteroid) {
+            asteroidCount++;
+          }
+        }
+        // If this was the last Asteroid
+        if (asteroidCount === 0) {
+          // Increase the number of asteroids in the next wave
+          this.numAsteroidsSpawn++;
+          // Spawn a wave of asteroids.
+          this.spawnWave();
+        }
+      }
     }
 }
 
@@ -86,12 +172,14 @@ function update(time) {
     // Get the current GameObject from the gameManager array
     let go = gameManager.gameObjects[i];
     // If the game is not paused
-    if (!gameManager.gamePaused) {
+    if (!gameManager.gamePaused && !gameManager.gameBegin && !gameManager.gameOver) {
       // Update and check the collisions of the current GameObject
       go.update();
       checkCollisions(go);
     }
     go.draw();
+
+    // If the showCollider's flag is set, draw the collider for this GameObject for debugging.
     if (gameManager.showColliders) {
       go.drawCollider();
     }
@@ -100,9 +188,18 @@ function update(time) {
   drawLives();
   drawScore();
 
+  if (gameManager.gameBegin) {
+    drawStartMenu();
+  }
+
   if (gameManager.gamePaused) {
     drawPauseMenu();
   }
+
+  if (gameManager.gameOver) {
+    drawGameLostMenu();
+  }
+
   requestAnimationFrame(update);
 }
 
@@ -145,6 +242,8 @@ function checkCollisions(go) {
         // Remove this Asteroid from the array of gameObjects
         let index = gameManager.gameObjects.indexOf(go);
         gameManager.gameObjects.splice(index, 1);
+        // Tell the asteroidManager that the asteroid was destroyed.
+        gameManager.asteroidManager.onAsteroidDestroy(go);
         // Increase the player's score by this Asteroid's score value
         gameManager.playerScore += go.scoreValue;
       }
@@ -167,6 +266,9 @@ function checkCollisions(go) {
       go.acceleration = Vector2.zero();
       // Decrease the player's lives by 1
       gameManager.playerLives--;
+      if (gameManager.playerLives <= 0) {
+        gameManager.gameOver = true;
+      }
     }
   }
 }
@@ -216,23 +318,42 @@ function drawScore() {
 }
 
 /**
- * Draws the game's pause menu.
+ * Draws the game's start menu.
  */
-function drawStartMenu() {
-  let context = gameManager.context;
-  let canvas = gameManager.canvas;
-  context.save();
-  context.globalAlpha = 0.6;
-  drawBackground();
-  context.globalAlpha = 1;
-  context.font = MENU_FONT_SIZE + "px Arial";
-  context.fillStyle = MAIN_COLOR;
-  context.textAlign = "center";
-  context.translate(canvas.width/2, canvas.height/4);
-  let menuText = "Asteroids";
-  context.fillText(menuText, 0, MENU_FONT_SIZE);
-  context.restore();
-}
+ function drawStartMenu() {
+   let context = gameManager.context;
+   let canvas = gameManager.canvas;
+   context.save();
+   context.globalAlpha = 0.6;
+   drawBackground();
+   context.globalAlpha = 1;
+   context.font = MENU_FONT_SIZE + "px Arial";
+   context.fillStyle = MAIN_COLOR;
+   context.textAlign = "center";
+   context.translate(canvas.width/2, canvas.height/4);
+   let menuText = "Asteroids";
+   context.fillText(menuText, 0, MENU_FONT_SIZE);
+   context.font = HUD_FONT_SIZE + "px Arial";
+   context.translate(0, canvas.height/6);
+   menuText = "Controls:";
+   context.fillText(menuText, 0, 0);
+   context.translate(0, canvas.height/16);
+   menuText = "Pause: [Escape]";
+   context.fillText(menuText, 0, 0);
+   context.translate(0, canvas.height/16);
+   menuText = "Turn Left / Right : ← / →";
+   context.fillText(menuText, 0, 0);
+   context.translate(0, canvas.height/16);
+   menuText = "Move forward: ↑";
+   context.fillText(menuText, 0, 0);
+   context.translate(0, canvas.height/16);
+   menuText = "Fire weapon: [Space Bar]"
+   context.fillText(menuText, 0, 0);
+   context.translate(0, canvas.height/8);
+   menuText = "Press [Space Bar] to begin game!"
+   context.fillText(menuText, 0, 0);
+   context.restore();
+ }
 
 /**
  * Draws the game's pause menu.
@@ -247,12 +368,51 @@ function drawPauseMenu() {
   context.font = MENU_FONT_SIZE + "px Arial";
   context.fillStyle = MAIN_COLOR;
   context.textAlign = "center";
-  context.translate(canvas.width/2, canvas.height/2);
+  context.translate(canvas.width/2, canvas.height/4);
   let menuText = "Paused";
-  context.fillText(menuText, 0, 0);
+  context.fillText(menuText, 0, MENU_FONT_SIZE);
   context.translate(0, canvas.height/8);
   context.font = HUD_FONT_SIZE + "px Arial";
   menuText = "(Press Escape to resume)";
+  context.fillText(menuText, 0, 0);
+  context.translate(0, canvas.height/8);
+  menuText = "Controls:";
+  context.fillText(menuText, 0, 0);
+  context.translate(0, canvas.height/16);
+  menuText = "Pause: [Escape]";
+  context.fillText(menuText, 0, 0);
+  context.translate(0, canvas.height/16);
+  menuText = "Turn Left / Right : ← / →";
+  context.fillText(menuText, 0, 0);
+  context.translate(0, canvas.height/16);
+  menuText = "Move forward: ↑";
+  context.fillText(menuText, 0, 0);
+  context.translate(0, canvas.height/16);
+  menuText = "Fire weapon: [Space Bar]"
+  context.fillText(menuText, 0, 0);
+  context.restore();
+}
+
+/**
+ * Draws the game's game lost menu.
+ */
+function drawGameLostMenu() {
+  let context = gameManager.context;
+  let canvas = gameManager.canvas;
+  context.save();
+  context.globalAlpha = 0.6;
+  drawBackground();
+  context.globalAlpha = 1;
+  context.font = MENU_FONT_SIZE + "px Arial";
+  context.fillStyle = MAIN_COLOR;
+  context.textAlign = "center";
+  context.translate(canvas.width/2, canvas.height/4);
+  let menuText = "You lost!";
+  context.fillText(menuText, 0, MENU_FONT_SIZE);
+  context.font = HUD_FONT_SIZE + "px Arial";
+  let spacing = context.measureText(menuText).height;
+  context.translate(0, canvas.height/8);
+  menuText = "(Press Escape to start new game)";
   context.fillText(menuText, 0, 0);
   context.restore();
 }
@@ -282,40 +442,50 @@ function handleInput(time) {
   let rotationAngle = 3 * (Math.PI / 180);
   if (gameManager.CONTROLS_STATE.escape && !gameManager.CONTROLS_HELD.escape) {
     gameManager.CONTROLS_HELD.escape = true;
-    // Pause the game.
-    gameManager.gamePaused = !gameManager.gamePaused;
+    if (!gameManager.gameBegin && !gameManager.gameOver) {
+      // Pause the game.
+      gameManager.gamePaused = !gameManager.gamePaused;
+    }
+    else if (gameManager.gameOver) {
+      gameManager.CONTROLS_HELD.space = true;
+      gameManager.reset();
+    }
   }
   if (!gameManager.gamePaused) {
-    if (gameManager.CONTROLS_STATE.up) {
-      // Accellerate the ship in the direction it is currently facing.
-      ship.acceleration = Vector2.lerp(ship.acceleration, Vector2.multiply(ship.direction, acceleration), 0.005);
-      ship.acceleration.clampMagnitude(3);
-    }
-    /*
-    if (gameManager.CONTROLS_STATE.down) {
-      // do nothing.
-    }
-    */
-    if (gameManager.CONTROLS_STATE.left) {
-      ship.direction.rotate(-rotationAngle);
-    }
-    if (gameManager.CONTROLS_STATE.right) {
-      ship.direction.rotate(rotationAngle);
-    }
-    if (gameManager.CONTROLS_STATE.space) {
-      // If enough time has passed between the last fire and this one
-      if (time > gameManager.nextFire) {
-          gameManager.nextFire = time + gameManager.fireRate;
-          let projectileVelocity = 3;
-          let proj = new Projectile(Vector2.add(ship.position, Vector2.multiply(ship.direction, ship.collisionRadius)), // position
-                                    new Vector2(ship.direction.x, ship.direction.y), // direction
-                                    Vector2.multiply(ship.direction, projectileVelocity + ship.velocity.magnitude()), // velocity
-                                    Vector2.zero(), // acceleration
-                                    1); // collisionRadius
-          gameManager.gameObjects.push(proj);
+    if (!gameManager.gameBegin && !gameManager.gameOver) {
+      if (gameManager.CONTROLS_STATE.up) {
+        // Accellerate the ship in the direction it is currently facing.
+        ship.acceleration = Vector2.lerp(ship.acceleration, Vector2.multiply(ship.direction, acceleration), 0.005);
+        ship.acceleration.clampMagnitude(3);
+      }
+      if (gameManager.CONTROLS_STATE.left) {
+        ship.direction.rotate(-rotationAngle);
+      }
+      if (gameManager.CONTROLS_STATE.right) {
+        ship.direction.rotate(rotationAngle);
       }
     }
-  } else {
+    if (gameManager.CONTROLS_STATE.space) {
+      // If this is the beginning of the game, space starts the game.
+      if (gameManager.gameBegin) {
+        gameManager.CONTROLS_HELD.space = true;
+        gameManager.gameBegin = false;
+        gameManager.asteroidManager.spawnWave();
+      }
+      // If enough time has passed between the last fire and this one
+      else if (time > gameManager.nextFire && !gameManager.CONTROLS_HELD.space) {
+            gameManager.nextFire = time + gameManager.fireRate;
+            let projectileVelocity = 3;
+            let proj = new Projectile(Vector2.add(ship.position, Vector2.multiply(ship.direction, ship.collisionRadius)), // position
+                                      new Vector2(ship.direction.x, ship.direction.y), // direction
+                                      Vector2.multiply(ship.direction, projectileVelocity + ship.velocity.magnitude()), // velocity
+                                      Vector2.zero(), // acceleration
+                                      1); // collisionRadius
+            gameManager.gameObjects.push(proj);
+      }
+    }
+  }
+  else {
     if (gameManager.CONTROLS_STATE.up) {gameManager.CONTROLS_STATE.up = false;}
     if (gameManager.CONTROLS_STATE.left) {gameManager.CONTROLS_STATE.left = false;}
     if (gameManager.CONTROLS_STATE.right) {gameManager.CONTROLS_STATE.right = false;}
@@ -395,6 +565,17 @@ Vector2.right = function () {
  */
 Vector2.up = function () {
   return new Vector2(0, -1);
+}
+
+/**
+ * Creates a randomized new Vector2 object with magnitude 1.
+ * @return {Vector2} The new Vector2 object.
+ * @static
+ */
+Vector2.random = function () {
+  let newVector = Vector2.up();
+  newVector.rotate((Math.random() + 1) * 2 * Math.PI);
+  return newVector;
 }
 
 /**
@@ -813,13 +994,6 @@ function GameObject(position, direction, velocity, acceleration, collisionRadius
   this.velocity = velocity;
   this.acceleration = acceleration;
   this.collisionRadius = collisionRadius;
-
-  // Log that the new GameObject was created sucessfully.
-  console.log("Created new GameObject: position: " + JSON.stringify(this.position) +
-                                   ", direction: " + JSON.stringify(this.direction) +
-                                    ", velocity: " + JSON.stringify(this.velocity) +
-                                ", acceleration: " + JSON.stringify(this.acceleration) +
-                             ", collisionRadius: " + JSON.stringify(this.collisionRadius));
 }
 
 // Abstract update method for the GameObject base class.
@@ -845,7 +1019,7 @@ GameObject.prototype.draw = function () {
 /**
  * Checks whether this game object collided with another game object that matches otherObjectType.
  * @param {GameObject} otherObjectType Takes the constructor name of the object to check collision with.
- * @return {?GameObject} The matching object that collided with this one.
+ * @return {?GameObject} The matching object that collided with this one (if found).
  */
 GameObject.prototype.checkCollisionWith = function (otherObjectType) {
   // *** BEGIN INPUT VALIDATION ***
@@ -885,7 +1059,7 @@ GameObject.prototype.checkCollisionWith = function (otherObjectType) {
   return collidedWith;
 };
 
-// Draws a circle representing the collisionRadius
+// Draws a circle representing the collisionRadius for debugging.
 GameObject.prototype.drawCollider = function () {
   let context = gameManager.context;
   context.save();
@@ -923,7 +1097,7 @@ PlayerShip.prototype.update = function () {
   this.velocity.lerp(Vector2.zero(), 0.01);
   this.acceleration.lerp(Vector2.zero(), 0.1);
 
-  // Warp to opposite side of game area if bumping against edge.
+  // Warp to opposite side of game area if intersecting with an edge.
   if (this.position.x > canvas.width) {
     this.position.x = 0;
   }
@@ -955,7 +1129,7 @@ PlayerShip.prototype.draw = function () {
   context.strokeStyle = MAIN_COLOR;
   context.stroke();
 
-  // If the ship is currently accellerating draw the thruster flame.
+  // If the ship is currently accellerating, then draw the thruster flame.
   if (this.acceleration.magnitude() > 0.04) {
     let thrustWidth = 2.5;
     let thrustMiddle = 2;
@@ -1075,6 +1249,14 @@ Asteroid.prototype = Object.create(GameObject.prototype);
 Asteroid.prototype.constructor = Asteroid;
 
 /**
+ * Constants for the number of sides of the three sizes of Asteroid
+ * @static
+ */
+Asteroid.smallNumSides = 3;
+Asteroid.mediumNumSides = 4;
+Asteroid.largeNumSides = 5;
+
+/**
  * Creates an instance of a small Asteroid with default values for small
  * @static
  */
@@ -1084,7 +1266,7 @@ Asteroid.createSmall = function () {
                       Vector2.zero(), // velocity
                       Vector2.zero(), // acceleration
                       20, // collisionRadius
-                      3, // numSides
+                      Asteroid.smallNumSides, // numSides
                       1, // health
                       10); // scoreValue
 }
@@ -1099,7 +1281,7 @@ Asteroid.createMedium = function () {
                       Vector2.zero(), // velocity
                       Vector2.zero(), // acceleration
                       25, // collisionRadius
-                      4, // numSides
+                      Asteroid.mediumNumSides, // numSides
                       2, // health
                       20); // scoreValue
 }
@@ -1114,7 +1296,7 @@ Asteroid.createLarge = function () {
                       Vector2.zero(), // velocity
                       Vector2.zero(), // acceleration
                       30, // collisionRadius
-                      5, // numSides
+                      Asteroid.largeNumSides, // numSides
                       3, // health
                       30); // scoreValue
 }
@@ -1128,7 +1310,7 @@ Asteroid.prototype.update = function () {
   let rotationAngle = 0.5 * (Math.PI / 180);
   this.direction.rotate(rotationAngle);
 
-  // Warp to opposite side of game area if bumping against edge.
+  // Warp to opposite side of game area if intersecting with an edge.
   if (this.position.x > canvas.width) {
     this.position.x = 0;
   }
@@ -1163,3 +1345,82 @@ Asteroid.prototype.draw = function () {
   context.stroke();
   context.restore();
 };
+
+/*
+Full application testing
+
+Load page:
+Expecting menu presenting the game's title and the controls,
+with note to press the space bar to begin.
+Result: pass.
+
+Press space bar on start menu of game:
+Expecting game to begin and asteroids to spawn.
+Result: pass.
+
+Press other controls on start menu of game:
+Expecting other controls to do nothing.
+Result: pass.
+
+Game begins:
+Expecting Asteroids are spawned with random positions and velocities.
+Asteroids begin moving in the direction of their velocity and rotating clockwise.
+Result: pass.
+
+Press escape in game:
+Expecting the game to stop and the pause menu to appear and other controls to be ignored.
+Result: pass.
+
+Press other controls on pause menu:
+Expecting other controls to do nothing.
+Result: pass.
+
+Press escape on pause menu:
+Expecting pause menu to disappear and the game to resume and other controls begin working again.
+Result: pass.
+
+Press up in game:
+Expecting ship to accellerate in the direction it is facing.
+Result: pass.
+
+Once ship is moving player does nothing:
+Expecting ship to continue moving in the direction of it's velocity vector,
+but velocity should slowly decrease to zero and stop.
+Result: pass.
+
+Press left or right in game:
+Expecting ship to rotate in the respective direction of the control.
+Result: pass.
+
+Press space in game:
+Expecting ship to fire projectile in the direction it is facing.
+Result: pass.
+
+Projetile hits Asteroid:
+Expecting when 3 shots hit large, 2 hit medium, or 1 hits small,
+the asteroid is destroyed and spawns two of the next smallest size asteroid in its place.
+Player score goes up by first asteroid's score worth.
+Result: pass.
+
+Player hits Asteroid:
+Expecting player ship to reset position at center of map.
+Life count to go down.
+If last life, game over menu is displayed.
+Result: pass.
+
+Press escape on game over menu:
+Expecting game over menu to disappear and the game to reset its state and other controls begin working again.
+Result: pass.
+
+Press other controls on game over menu:
+Expecting other controls to do nothing.
+Result: pass.
+
+Player or Asteroid cross edge of canvas:
+Expecting warp to other side of canvas to stay in view and maintain velocity.
+Result: pass.
+
+Projectile cross edge of canvas:
+Expecting projectile to be destroyed.
+Result: pass.
+*/
