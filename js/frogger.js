@@ -18,25 +18,119 @@ frog1.src = "../img/frogger/frogger1.png";
 var car = new Image();
 car.src = "../img/frogger/cars.png";
 
-//variables for first car
+////////////// VARIABLE STACK //////////////
 
-	//variables to allow all cars to move across the screen
+/**
+ * Variable Explanation: Variables such as 'carX1' and 'carY1' represent the 
+ * x and y coordinates of the particular object respectively (at the center). 
+ * Variables such as 'carWidth' and 'carHeight' represent the size of the object. 
+ */
+
 var carX1 = 100;
 var carSX1 = 0;
-		//variables for collision detection
-var carY1 = 400;
-//variables for second car
 
-var carX2 = 500;
-var carSX2 = 60;
-var carY2 = 400;
-//
-var carX2 = 100;
-var carSX2 = 60;
-var carY2 = 400;
-
+	//general car width and height
 var carWidth = 60;
 var carHeight = 35;
+	
+	//variables for collision detection
+var carY1 = 400;
+var carWidth = 60;
+var carHeight = 35;
+
+	//variables for second car
+var carX2 = 500; 
+var carSX2 = 60; 
+var carY2 = 400; 
+
+	//variables for third car
+var carX3 = 460; 
+var carSX3 = 120; 
+var carY3 = 355; 
+
+	//variables for fourth car
+var carX4 = 400; 
+var carSX4 = 180; 
+var carY4 = 310; 
+
+	//variables for fifth car
+var carX5 = 360; 
+var carSX5 = 0; 
+var carY5 = 265; 
+
+	//variables for sixth car
+var carX6 = 60; 
+var carSX6 = 120; 
+var carY6 = 355; 
+
+	//variables for seventh car
+var carX7 = 100; 
+var carSX7 = 180; 
+var carY7 = 310; 
+
+	//variables for eighth car
+var carX8 = 160; 
+var carSX8 = 0; 
+var carY8 = 265; 
+
+	//log variables
+var logWidth = 120;
+var logHeight = 30;
+
+		//log 1 
+var logX1 = 300;
+var logY1 = 180;
+
+		//log 2
+var logX2 = 40;
+var logY2 = 180;
+
+		//log 3
+var logX3 = 100;
+var logY3 = 136;
+
+		//log 4
+var logX4 = 400;
+var logY4 = 136;
+
+		//log 5
+var logX5 = 480;
+var logY5 = 92;
+
+		//log 6
+var logX6 = 60;
+var logY6 = 92;
+
+		//log 7
+var logX7 = 120;
+var logY7 = 48;
+
+		//log 8
+var logX8 = 500;
+var logY8 = 48;
+
+		//lily pads
+var lilyWidth = 30;
+var lilyHeight = 30;
+
+var lilyX1 = 20;
+var lilyY1 = 4;
+
+var lilyX2 = 120;
+var lilyY2 = 4;
+
+var lilyX3 = 220;
+var lilyY3 = 4;
+
+var lilyX4 = 320;
+var lilyY4 = 4;
+
+var lilyX5 = 420;
+var lilyY5 = 4;
+
+var lilyX6 = 520;
+var lilyY6 = 4;
+
 	//variables for drawImage Method
 var sx = 0;
 var sy = 0;
@@ -57,6 +151,8 @@ var up = true;
 var down = true;
 var right = true;
 var left = true;
+
+////////////// END OF VARIABLE STACK //////////////
 
 	//event Listeners for when a key is pressed or not pressed 
 document.addEventListener("keydown", keyDownHandler, false);
@@ -156,41 +252,250 @@ function moveFrog () {
 }
 	//function that will draw the cars
 function drawCars() {
-	context.drawImage(car, carSX1, 0, 60, 35, carX1, carY1, carWidth, carHeight);
-		if (carX1 < canvas.width + 100) {
-			carX1 = carX1 + 5;
-		} else {
-				carX1 = -100;
-				carSX1 = (Math.floor(Math.random() * 4)) * 60;
-		  }
-	context.drawImage(car, carSX2, 0, 60, 35, carX2, carY2, carWidth, carHeight);
-		if (carX2 < canvas.width + 100) {
-			carX2 = carX2 + 5;
-		} else {
-				carX2 = -100;
-				carSX2 = (Math.floor(Math.random() * 4)) * 60;
-		  }
+
+	var carsSX = [carSX1, carSX2, carSX3, carSX4, carSX5, carSX6, carX7, carSX8];
+	var carsX = [carX1, carX2, carX3, carX4, carX5, carX6, carX7, carX8];
+	var carsY = [carY1, carY2, carY3, carY4, carY5, carY6, carY7, carY8];
+	for (i = 0; i < carsX.length; i++) {
+		context.drawImage(car, carsSX[i], 0, 60, 35, carsX[i], carsY[i], carWidth, carHeight);
+
+	}
+	
 }
-	//funtion that detects if the frog and car images are overlapping
-	function runOver () {
-		var carsX = [carX1, carX2]; 
-		var carsY = [carY1, carY2];
-		for (i = 0; i < carsX.length; i++) {
-			if (carsX[i] <= x + width && 
-				carsY[i] + carWidth >= x && 
-				carsY[i] + carHeight >= y &&
-		   		carsY[i] <= y + height){
-					y = 488;
+	//function that will allow all the cars to move
+function moveCars() {
+		//1st car
+	if (carX1 < canvas.width + 100) {
+		carX1 = carX1 + 5;
+	} else {
+			carX1 = -100;
+			carSX1 = (Math.floor(Math.random() * 4)) * 60;
+	  } 
+	  //2nd car
+	if (carX2 < canvas.width + 100) {
+		carX2 = carX2 + 5;
+	} else {
+			carX2 = -100;
+			carSX2 = (Math.floor(Math.random() * 4)) * 60;
+	  }
+	  //3nd car
+	if (carX3 > -100) {
+		carX3 = carX3 - 5;
+	} else {
+			carX3 = canvas.width + 100;
+			carSX3 = (Math.floor(Math.random() * 4)) * 60;
+	  }
+	  	  //4th car
+	if (carX4 < canvas.width + 100) {
+		carX4 = carX4 + 5;
+	} else {
+			carX4 = -100;
+			carSX4 = (Math.floor(Math.random() * 4)) * 60;
+	  }
+	  	  //5th car
+	  if (carX5 > -100) {
+		carX5 = carX3 - 5;
+	} else {
+			carX5 = canvas.width + 100;
+			carSX5 = (Math.floor(Math.random() * 4)) * 60;
+	  }
+	  	  //6th car
+	if (carX6 > -100) {
+		carX6 = carX6 - 5;
+	} else {
+			carX6 = canvas.width + 100;
+			carSX6 = (Math.floor(Math.random() * 4)) * 60;
+	  }
+	  	  //7th car
+	if (carX7 < canvas.width + 100) {
+		carX7 = carX7 + 5;
+	} else {
+			carX7 = -100;
+			carSX7 = (Math.floor(Math.random() * 4)) * 60;
+	  }
+	  //8th car
+	  if (carX8 > -100) {
+		carX8 = carX8 - 5;
+	} else {
+			carX8 = canvas.width + 100;
+			carSX8 = (Math.floor(Math.random() * 4)) * 60;
+	  }
+}
+	//function that detects if the frog and car images are overlapping
+function runOver() {
+	var carsX = [carX1, carX2, carX3, carX4, carX5, carX6, carX7, carX8];
+	var carsY = [carY1, carY2, carY3, carY4, carY5, carY6, carY7, carY8];
+	for (i = 0; i < carsX.length; i++) {
+		if (carsX[i] <= x + width &&
+			carsX[i] + carWidth >= x &&
+			carsY[i] + carHeight >= y &&
+			carsY[i] <= y + height) {
+				y = 488;
 		}
 	}
+}
+	//function that will draw logs on the river.
+function drawLogs() {
+		//using fillStyle for testing purposes. Will replace with images
+	context.fillStyle = 'brown';
+	var logsX = [logX1, logX2, logX3, logX4, logX5, logX6, logX7, logX8];
+	var logsY = [logY1, logY2, logY3, logY4, logY5, logY6, logY7, logX8];
+
+	for (i = 0; i < logsX.length; i++) {
+		context.fillRect(logsX[i], logsY[i], logWidth, logHeight);
 	}
+}
+	//function that will move the logs ONLY
+function moveLogs() {
+		//log1 only
+	if (logX1 < canvas.width + 100) {
+		logX1 = logX1 + 2;
+	}
+	else {
+		logX1 = -100;
+	}
+		//log 2 only
+	if (logX2 < canvas.width + 100) {
+		logX2 = logX2 + 2;
+	}
+	else {
+		logX2 = -100;
+	}
+		//log 3 only
+	if (logX3 > 0 - logWidth) {
+		logX3 = logX3 - 2;
+	}
+	else {
+		logX3 = canvas.width + 100;
+	}
+		//log 4 only
+	if (logX4 > 0 - logWidth) {
+		logX4 = logX4 - 2;
+	}
+	else {
+		logX4 = canvas.width + 100;
+	}
+		//log 5 only
+	if (logX5 < canvas.width + 100) {
+		logX5 = logX5 + 4;
+	}
+	else {
+		logX5 = -100;
+	}
+		//log 6 only
+	if (logX6 < canvas.width + 100) {
+		logX6 = logX6 + 4;
+	}
+	else {
+		logX6 = -100;
+	}	
+		//log 7 only
+	if (logX7 > 0 - logWidth) {
+		logX7 = logX7 - 2;
+	}
+	else {
+		logX7 = canvas.width + 100;
+	}
+		//log 8 only
+	if (logX8 > 0 - logWidth) {
+		logX8 = logX8 - 2;
+	}
+	else {
+		logX8 = canvas.width + 100;
+	}
+}
+	//function for changing the collision coordinates for the logs as they move across the screen
+function floatLogs() {
+
+			//log 1
+		if (logX1 <= x + width && //this 'if' block will determine if the frog is located on the log
+		logX1 + logWidth >= x && 
+		logY1 + logHeight >= y &&
+		logY1 <= y + height) {
+			if (x < canvas.width - 30) { 
+				x = x + 2;  //'collision' logic for water will move with the log so the frog will never disappear when on the log.
+			}
+		}
+			//log 2
+		else if (logX2 <= x + width && //this 'if' block will determine if the frog is located on the log
+				logX2 + logWidth >= x && 
+				logY2 + logHeight >= y &&
+				logY2 <= y + height) {
+			if (x < canvas.width - 30) { 
+				x = x + 2;  
+			} 
+		}
+			//log 3
+		else if (logX3 <= x + width && 
+				logX3 + logWidth >= x && 
+				logY3 + logHeight >= y &&
+				logY3 <= y + height) {
+			if (x > 0) { 
+				x = x - 2;  
+			} 
+		}
+			//log 4
+		else if (logX4 <= x + width && 
+				logX4 + logWidth >= x && 
+				logY4 + logHeight >= y &&
+				logY4 <= y + height) {
+			if (x > 0) { 
+				x = x - 2;  
+			} 
+		}
+			//log 5
+		else if (logX5 <= x + width && 
+				logX5 + logWidth >= x && 
+				logY5 + logHeight >= y &&
+				logY5 <= y + height) {
+			if (x > 0) { 
+				x = x + 4;  
+			} 
+		}
+			//log 6
+		else if (logX6 <= x + width && 
+			logX6 + logWidth >= x && 
+			logY6 + logHeight >= y &&
+			logY6 <= y + height) {
+			if (x > 0) { 
+				x = x + 4;  
+			} 
+		}
+			//log 7
+			else if (logX7 <= x + width && 
+				logX7 + logWidth >= x && 
+				logY7 + logHeight >= y &&
+				logY7 <= y + height) {
+			if (x > 0) { 
+				x = x - 2;  
+			} 
+		}
+			//log 8
+		else if (logX8 <= x + width && 
+				logX8 + logWidth >= x && 
+				logY8 + logHeight >= y &&
+				logY8 <= y + height) {
+			if (x > 0) { 
+				x = x - 2;  
+			} 
+		}
+		else if (y < 220){
+			y = 488; //reset frog's position to the bottom 
+		}
+}
+	//game drawing function
 function draw() {
 	context.clearRect(0, 0, canvas.width, canvas.height); /*clears the previous iteration of the frog and redraws a new one.*/
 	drawBackground();
+	drawLogs();
+	moveLogs();
 	drawFrog();
 	moveFrog();	
 	drawCars();
+	moveCars();
 	runOver();
-	requestAnimationFrame(draw);
+	floatLogs(); 
+	requestAnimationFrame(draw); //refreshes based on the the user's refresh rate.
 }
+
 draw();
