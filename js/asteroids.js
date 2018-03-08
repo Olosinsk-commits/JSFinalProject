@@ -10,7 +10,7 @@
 
 const KEY_CODES = {27: 'escape', 32: 'space', 37: 'left', 38: 'up', 39: 'right', 40: 'down'};
 const HUD_FONT_SIZE = 20; // 20px font size
-const MENU_FONT_SIZE = 40; // 20px font size
+const MENU_FONT_SIZE = 40; // 40px font size
 const BG_COLOR = '#000000'; // Black background color
 const MAIN_COLOR = '#FFFFFF'; // White main color
 const THRUST_COLOR = '#FFFF00'; // Yellow thruster color
@@ -23,6 +23,7 @@ $(document).ready(function() {
     }).keyup(function(e) {
       getInput(e);
     });
+    $('#gameContainer').prepend();
     gameManager.start();
   });
 
@@ -55,31 +56,18 @@ var gameManager = {
                                            Vector2.zero(), // acceleration
                                            12); // collisionRadius
           this.gameObjects.push(this.playerShip);
+          let smallAsteroid = Asteroid.createSmall();
+          let mediumAsteroid = Asteroid.createMedium();
+          let largeAsteroid = Asteroid.createLarge();
 
-          this.gameObjects.push(new Asteroid(new Vector2(this.canvas.width/3, this.canvas.height/3), // position
-                                             Vector2.up(), // direction
-                                             Vector2.zero(), // velocity
-                                             Vector2.zero(), // acceleration
-                                             20, // collisionRadius
-                                             3, // numSides
-                                             10) // scoreValue
-          );
-          this.gameObjects.push(new Asteroid(new Vector2(this.canvas.width/2, this.canvas.height/3), // position
-                                             Vector2.up(), // direction
-                                             Vector2.zero(), // velocity
-                                             Vector2.zero(), // acceleration
-                                             25, // collisionRadius
-                                             4, // numSides
-                                             20) // scoreValue
-          );
-          this.gameObjects.push(new Asteroid(new Vector2(this.canvas.width*2/3, this.canvas.height/3), // position
-                                             Vector2.up(), // direction
-                                             Vector2.zero(), // velocity
-                                             Vector2.zero(), // acceleration
-                                             30, // collisionRadius
-                                             5, // numSides
-                                             30) // scoreValue
-          );
+          smallAsteroid.position = new Vector2(this.canvas.width/3, this.canvas.height/3);
+          mediumAsteroid.position = new Vector2(this.canvas.width/2, this.canvas.height/3);
+          largeAsteroid.position = new Vector2(this.canvas.width*2/3, this.canvas.height/3);
+
+          this.gameObjects.push(smallAsteroid);
+          this.gameObjects.push(mediumAsteroid);
+          this.gameObjects.push(largeAsteroid);
+
           this.showColliders = false;
           requestAnimationFrame(update);
         } else {
@@ -113,14 +101,14 @@ function update(time) {
   drawScore();
 
   if (gameManager.gamePaused) {
-    drawMenu();
+    drawPauseMenu();
   }
   requestAnimationFrame(update);
 }
 
 /**
- * Draws the black background for the game.
- * This also serves the purpose of clearing the entire canvas.
+ * Draws the black background for the game
+ * This also serves the purpose of clearing the entire canvas
  */
 function drawBackground() {
   let context = gameManager.context;
@@ -130,18 +118,18 @@ function drawBackground() {
 }
 
 /**
- * Checks the collisions of the input game object.
+ * Checks the collisions of the input game object
  */
 function checkCollisions(go) {
   // *** BEGIN INPUT VALIDATION ***
   try {
-    // If no input was received for the 'go' parameter.
+    // If no input was received for the 'go' parameter
     if (go === undefined) throw "The 'go' parameter is required!";
-    // If the 'go' parameter is not a GameObject.
+    // If the 'go' parameter is not a GameObject
     if (!go instanceof GameObject) throw "The 'go' parameter must be a GameObject object.";
   }
   catch (e) {
-    console.log(e.message);
+    console.log(e);
   }
   // *** END INPUT VALIDATION ***
 
@@ -149,14 +137,21 @@ function checkCollisions(go) {
     // Get the Projectile this collided with (if any)
     let collidedWithProjectile = go.checkCollisionWith(Projectile);
     if (collidedWithProjectile) {
-      // Remove this Asteroid from the array of gameObjects
-      let index = gameManager.gameObjects.indexOf(go);
-      gameManager.gameObjects.splice(index, 1);
+      // Reduce health by one
+      go.health--;
+
+      // If this Asteroid has run out of health
+      if (go.health <= 0) {
+        // Remove this Asteroid from the array of gameObjects
+        let index = gameManager.gameObjects.indexOf(go);
+        gameManager.gameObjects.splice(index, 1);
+        // Increase the player's score by this Asteroid's score value
+        gameManager.playerScore += go.scoreValue;
+      }
+
       // Remove the projectile from the array of gameObjects
-      index = gameManager.gameObjects.indexOf(collidedWithProjectile);
+      let index = gameManager.gameObjects.indexOf(collidedWithProjectile);
       gameManager.gameObjects.splice(index, 1);
-      // Increase the player's score by this Asteroid's score value.
-      gameManager.playerScore += go.scoreValue;
     }
   }
 
@@ -164,20 +159,20 @@ function checkCollisions(go) {
     // Get the Asteroid this collided with (if any)
     let collidedWithAsteroid = go.checkCollisionWith(Asteroid)
     if (collidedWithAsteroid) {
-      // Move the player ship to the starting position and remove a life.
+      // Move the player ship to the starting position and remove a life
       go.position.x = gameManager.canvas.width/2;
       go.position.y = gameManager.canvas.height/2;
       go.direction = Vector2.up();
       go.velocity = Vector2.zero();
       go.acceleration = Vector2.zero();
-      // Decrease the player's lives by 1.
+      // Decrease the player's lives by 1
       gameManager.playerLives--;
     }
   }
 }
 
 /**
- * Draws the player's available lives.
+ * Draws the player's available lives
  */
 function drawLives() {
   let canvas = gameManager.canvas;
@@ -223,7 +218,26 @@ function drawScore() {
 /**
  * Draws the game's pause menu.
  */
-function drawMenu() {
+function drawStartMenu() {
+  let context = gameManager.context;
+  let canvas = gameManager.canvas;
+  context.save();
+  context.globalAlpha = 0.6;
+  drawBackground();
+  context.globalAlpha = 1;
+  context.font = MENU_FONT_SIZE + "px Arial";
+  context.fillStyle = MAIN_COLOR;
+  context.textAlign = "center";
+  context.translate(canvas.width/2, canvas.height/4);
+  let menuText = "Asteroids";
+  context.fillText(menuText, 0, MENU_FONT_SIZE);
+  context.restore();
+}
+
+/**
+ * Draws the game's pause menu.
+ */
+function drawPauseMenu() {
   let context = gameManager.context;
   let canvas = gameManager.canvas;
   context.save();
@@ -234,8 +248,12 @@ function drawMenu() {
   context.fillStyle = MAIN_COLOR;
   context.textAlign = "center";
   context.translate(canvas.width/2, canvas.height/2);
-  let scoreText = "Paused";
-  context.fillText(scoreText, 0, HUD_FONT_SIZE);
+  let menuText = "Paused";
+  context.fillText(menuText, 0, 0);
+  context.translate(0, canvas.height/8);
+  context.font = HUD_FONT_SIZE + "px Arial";
+  menuText = "(Press Escape to resume)";
+  context.fillText(menuText, 0, 0);
   context.restore();
 }
 
@@ -325,7 +343,7 @@ function Vector2(x, y) {
     if (typeof y !== 'number') throw "The 'y' parameter must be a number.";
   }
   catch (e) {
-    console.log(e.message);
+    console.log(e);
   }
   // *** END INPUT VALIDATION ***
 
@@ -398,7 +416,7 @@ Vector2.angleBetween = function (fromV, toV) {
     if (!toV instanceof Vector2) throw "The 'toV' parameter must be a Vector2 object.";
   }
   catch (e) {
-    console.log(e.message);
+    console.log(e);
   }
   // *** END INPUT VALIDATION ***
 
@@ -431,7 +449,7 @@ Vector2.multiply = function (vector, scalar) {
     if (typeof scalar !== 'number') throw "The 'scalar' parameter must be a number.";
   }
   catch (e) {
-    console.log(e.message);
+    console.log(e);
   }
   // *** END INPUT VALIDATION ***
 
@@ -459,7 +477,7 @@ Vector2.add = function (vectorA, vectorB) {
     if (!vectorB instanceof Vector2) throw "The 'vectorB' parameter must be a Vector2 object.";
   }
   catch (e) {
-    console.log(e.message);
+    console.log(e);
   }
   // *** END INPUT VALIDATION ***
 
@@ -487,7 +505,7 @@ Vector2.subtract = function (vectorA, vectorB) {
     if (!vectorB instanceof Vector2) throw "The 'vectorB' parameter must be a Vector2 object.";
   }
   catch (e) {
-    console.log(e.message);
+    console.log(e);
   }
   // *** END INPUT VALIDATION ***
 
@@ -509,7 +527,7 @@ Vector2.normalize = function (vector) {
     if (!vector instanceof Vector2) throw "The 'vector' parameter must be a Vector2 object.";
   }
   catch (e) {
-    console.log(e.message);
+    console.log(e);
   }
   // *** END INPUT VALIDATION ***
 
@@ -547,7 +565,7 @@ Vector2.lerp = function (fromV, toV, percent) {
     if (percent < 0 || percent > 1) throw "The 'percent' parameter must be between 0 and 1 (inclusive).";
   }
   catch (e) {
-    console.log(e.message);
+    console.log(e);
   }
   // *** END INPUT VALIDATION ***
 
@@ -576,7 +594,7 @@ Vector2.prototype.add = function (otherVector) {
     if (!otherVector instanceof Vector2) throw "The 'otherVector' parameter must be a Vector2 object.";
   }
   catch (e) {
-    console.log(e.message);
+    console.log(e);
   }
   // *** END INPUT VALIDATION ***
 
@@ -598,7 +616,7 @@ Vector2.prototype.subtract = function (otherVector) {
     if (!otherVector instanceof Vector2) throw "The 'otherVector' parameter must be a Vector2 object.";
   }
   catch (e) {
-    console.log(e.message);
+    console.log(e);
   }
   // *** END INPUT VALIDATION ***
 
@@ -620,7 +638,7 @@ Vector2.prototype.multiply = function (scalar) {
     if (typeof scalar !== 'number') throw "The 'scalar' parameter must be a number.";
   }
   catch (e) {
-    console.log(e.message);
+    console.log(e);
   }
   // *** END INPUT VALIDATION ***
 
@@ -641,7 +659,7 @@ Vector2.prototype.rotate = function (angle) {
     if (typeof angle !== 'number') throw "The 'angle' parameter must be a number.";
   }
   catch (e) {
-    console.log(e.message);
+    console.log(e);
   }
   // *** END INPUT VALIDATION ***
 
@@ -700,7 +718,7 @@ Vector2.prototype.clampMagnitude = function (max) {
     if (max < 0) throw "The 'max' parameter must be a positive number greater than zero.";
   }
   catch (e) {
-    console.log(e.message);
+    console.log(e);
   }
   // *** END INPUT VALIDATION ***
 
@@ -731,7 +749,7 @@ Vector2.prototype.lerp = function (toV, percent) {
     if (percent < 0 || percent > 1) throw "The 'percent' parameter must be between 0 and 1 (inclusive).";
   }
   catch (e) {
-    console.log(e.message);
+    console.log(e);
   }
   // *** END INPUT VALIDATION ***
 
@@ -785,7 +803,7 @@ function GameObject(position, direction, velocity, acceleration, collisionRadius
     if (collisionRadius <= 0) throw "The 'collisionRadius' parameter must be a positive number greater than zero.";
   }
   catch (e) {
-    console.log(e.message);
+    console.log(e);
   }
   // *** END INPUT VALIDATION ***
 
@@ -810,7 +828,7 @@ GameObject.prototype.update = function () {
     throw "Cannot instantiate abstract class";
   }
   catch (e) {
-    console.log(e.message);
+    console.log(e);
   }
 };
 
@@ -820,7 +838,7 @@ GameObject.prototype.draw = function () {
     throw "Cannot instantiate abstract class";
   }
   catch (e) {
-    console.log(e.message);
+    console.log(e);
   }
 };
 
@@ -838,7 +856,7 @@ GameObject.prototype.checkCollisionWith = function (otherObjectType) {
     if (!otherObjectType instanceof GameObject) throw "The 'otherObjectType' parameter must be a GameObject object.";
   }
   catch (e) {
-    console.log(e.message);
+    console.log(e);
   }
   // *** END INPUT VALIDATION ***
 
@@ -899,23 +917,24 @@ PlayerShip.prototype.constructor = PlayerShip;
 
 /** @override The update function from the GameObject superclass */
 PlayerShip.prototype.update = function () {
+  let canvas = gameManager.canvas;
   this.velocity.add(this.acceleration);
   this.position.add(this.velocity);
   this.velocity.lerp(Vector2.zero(), 0.01);
   this.acceleration.lerp(Vector2.zero(), 0.1);
 
   // Warp to opposite side of game area if bumping against edge.
-  if (this.position.x > gameCanvas.width) {
+  if (this.position.x > canvas.width) {
     this.position.x = 0;
   }
   if (this.position.x < 0) {
-    this.position.x = gameCanvas.width;
+    this.position.x = canvas.width;
   }
-  if (this.position.y > gameCanvas.height) {
+  if (this.position.y > canvas.height) {
     this.position.y = 0;
   }
   if (this.position.y < 0) {
-    this.position.y = gameCanvas.height;
+    this.position.y = canvas.height;
   }
 };
 
@@ -975,13 +994,14 @@ Projectile.prototype.constructor = Projectile;
 
 /** @override The update function from the GameObject superclass */
 Projectile.prototype.update = function () {
+  let canvas = gameManager.canvas;
   // Update the projectile's position based on it's velocity.
   this.position.add(this.velocity);
 
   // If this projectile goes outside of the game area
-  if (this.position.x > gameCanvas.width ||
+  if (this.position.x > canvas.width ||
       this.position.x < 0 ||
-      this.position.y > gameCanvas.height ||
+      this.position.y > canvas.height ||
       this.position.y < 0) {
     // Remove this projectile from the array of gameObjects
     let index = gameManager.gameObjects.indexOf(this);
@@ -1009,16 +1029,17 @@ Projectile.prototype.draw = function () {
 /**
  * Creates an instance of an Asteroid.
  * @constructor
- * @param {Vector2} position The Projectile's position vector.
- * @param {Vector2} direction The Projectile's direction vector.
- * @param {Vector2} velocity The Projectile's velocity vector.
- * @param {Vector2} acceleration The Projectile's acceleration vector.
- * @param {number} collisionRadius The Projectile's collision radius size.
- * @param {number} numSides The Projectile's number of sides.
- * @param {number} scoreValue The Projectile's score value.
+ * @param {Vector2} position The Asteroid's position vector.
+ * @param {Vector2} direction The Asteroid's direction vector.
+ * @param {Vector2} velocity The Asteroid's velocity vector.
+ * @param {Vector2} acceleration The Asteroid's acceleration vector.
+ * @param {number} collisionRadius The Asteroid's collision radius size.
+ * @param {number} numSides The Asteroid's number of sides (Must be greater than 2).
+ * @param {number} health The Asteroid's health.
+ * @param {number} scoreValue The Asteroid's score value.
  * @return {Asteroid} The new Asteroid object.
  */
-function Asteroid(position, direction, velocity, acceleration, collisionRadius, numSides, scoreValue) {
+function Asteroid(position, direction, velocity, acceleration, collisionRadius, numSides, health, scoreValue) {
   GameObject.call(this, position, direction, velocity, acceleration, collisionRadius);
   // *** BEGIN INPUT VALIDATION ***
   try {
@@ -1028,26 +1049,79 @@ function Asteroid(position, direction, velocity, acceleration, collisionRadius, 
     if (typeof numSides !== 'number') throw "The 'numSides' parameter must be a number.";
     // If the 'numSides' parameter is less than or equal to 2.
     if (numSides <= 2) throw "The 'numSides' parameter must be a positive number greater than 2.";
+    // If no input was received for the 'health' parameter.
+    if (health === undefined) throw "The 'health' parameter is required!";
+    // If the 'health' parameter is not a number.
+    if (typeof health !== 'number') throw "The 'health' parameter must be a number.";
+    // If the 'health' parameter is less than or equal to 0.
+    if (health <= 0) throw "The 'health' parameter must be a number greater than zero.";
     // If no input was received for the 'scoreValue' parameter.
     if (scoreValue === undefined) throw "The 'scoreValue' parameter is required!";
     // If the 'scoreValue' parameter is not a number.
     if (typeof scoreValue !== 'number') throw "The 'scoreValue' parameter must be a number.";
     // If the 'scoreValue' parameter is less than or equal to 0.
-    if (scoreValue <= 0) throw "The 'scoreValue' parameter must be a positive number greater than zero.";
+    if (scoreValue <= 0) throw "The 'scoreValue' parameter must be a number greater than zero.";
   }
   catch (e) {
-    console.log(e.message);
+    console.log(e);
   }
   // *** END INPUT VALIDATION ***
 
   this.numSides = numSides;
+  this.health = health;
   this.scoreValue = scoreValue;
 }
 Asteroid.prototype = Object.create(GameObject.prototype);
 Asteroid.prototype.constructor = Asteroid;
 
+/**
+ * Creates an instance of a small Asteroid with default values for small
+ * @static
+ */
+Asteroid.createSmall = function () {
+  return new Asteroid(Vector2.zero(), // position
+                      Vector2.up(), // direction
+                      Vector2.zero(), // velocity
+                      Vector2.zero(), // acceleration
+                      20, // collisionRadius
+                      3, // numSides
+                      1, // health
+                      10); // scoreValue
+}
+
+/**
+ * Creates an instance of a medium Asteroid with default values for medium
+ * @static
+ */
+Asteroid.createMedium = function () {
+  return new Asteroid(Vector2.zero(), // position
+                      Vector2.up(), // direction
+                      Vector2.zero(), // velocity
+                      Vector2.zero(), // acceleration
+                      25, // collisionRadius
+                      4, // numSides
+                      2, // health
+                      20); // scoreValue
+}
+
+/**
+ * Creates an instance of a large Asteroid with default values for large
+ * @static
+ */
+Asteroid.createLarge = function () {
+  return new Asteroid(Vector2.zero(), // position
+                      Vector2.up(), // direction
+                      Vector2.zero(), // velocity
+                      Vector2.zero(), // acceleration
+                      30, // collisionRadius
+                      5, // numSides
+                      3, // health
+                      30); // scoreValue
+}
+
 /** @override The update function from the GameObject superclass */
 Asteroid.prototype.update = function () {
+  let canvas = gameManager.canvas;
   // Update the Asteroid's position based on it's velocity.
   this.position.add(this.velocity);
 
@@ -1055,17 +1129,17 @@ Asteroid.prototype.update = function () {
   this.direction.rotate(rotationAngle);
 
   // Warp to opposite side of game area if bumping against edge.
-  if (this.position.x > gameCanvas.width) {
+  if (this.position.x > canvas.width) {
     this.position.x = 0;
   }
   if (this.position.x < 0) {
-    this.position.x = gameCanvas.width;
+    this.position.x = canvas.width;
   }
-  if (this.position.y > gameCanvas.height) {
+  if (this.position.y > canvas.height) {
     this.position.y = 0;
   }
   if (this.position.y < 0) {
-    this.position.y = gameCanvas.height;
+    this.position.y = canvas.height;
   }
 }
 
@@ -1089,12 +1163,3 @@ Asteroid.prototype.draw = function () {
   context.stroke();
   context.restore();
 };
-
-/**
- * Creates a new Vector2 object with the default values for zero.
- * @return {Vector2} The new Vector2 object.
- * @static
- */
-Asteroid.small = function () {
-  return new Vector2(0, 0);
-}
