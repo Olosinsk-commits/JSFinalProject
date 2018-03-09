@@ -96,6 +96,7 @@ var gameManager = {
                                        Vector2.zero(), // acceleration
                                        12); // collisionRadius
       this.gameObjects.push(this.playerShip);
+      gameManager.asteroidManager.numAsteroidsSpawn = 3;
     },
     asteroidManager: {
       numAsteroidsSpawn: 3,
