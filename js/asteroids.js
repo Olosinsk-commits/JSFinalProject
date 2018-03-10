@@ -45,7 +45,7 @@ var gameManager = {
           // Array to store whether the control is being held down
           this.CONTROLS_HELD = [];
           // Initialize the array with the keys as all being false
-          for (keyCode in KEY_CODES) {
+          for (let keyCode in KEY_CODES) {
             this.CONTROLS_STATE[KEY_CODES[keyCode]] = false;
             this.CONTROLS_HELD[KEY_CODES[keyCode]] = false;
           }
@@ -77,7 +77,7 @@ var gameManager = {
       // Array to store whether the control is being held down
       this.CONTROLS_HELD = [];
       // Initialize the array with the keys as all being false
-      for (keyCode in KEY_CODES) {
+      for (let keyCode in KEY_CODES) {
         this.CONTROLS_STATE[KEY_CODES[keyCode]] = false;
         this.CONTROLS_HELD[KEY_CODES[keyCode]] = false;
       }
@@ -119,7 +119,7 @@ var gameManager = {
           // If no input was received for the 'as' parameter.
           if (as === undefined) throw "The 'as' parameter is required!";
           // If the 'as' parameter is not an Asteroid.
-          if (!as instanceof Asteroid) throw "The 'as' parameter must be a Asteroid object.";
+          if (!(as instanceof Asteroid)) throw "The 'as' parameter must be a Asteroid object.";
         }
         catch (e) {
           console.log(e);
@@ -162,7 +162,7 @@ var gameManager = {
         }
       }
     }
-}
+};
 
 function update(time) {
   handleInput(time);
@@ -224,7 +224,7 @@ function checkCollisions(go) {
     // If no input was received for the 'go' parameter
     if (go === undefined) throw "The 'go' parameter is required!";
     // If the 'go' parameter is not a GameObject
-    if (!go instanceof GameObject) throw "The 'go' parameter must be a GameObject object.";
+    if (!(go instanceof GameObject)) throw "The 'go' parameter must be a GameObject object.";
   }
   catch (e) {
     console.log(e);
@@ -257,7 +257,7 @@ function checkCollisions(go) {
 
   if (go instanceof PlayerShip) {
     // Get the Asteroid this collided with (if any)
-    let collidedWithAsteroid = go.checkCollisionWith(Asteroid)
+    let collidedWithAsteroid = go.checkCollisionWith(Asteroid);
     if (collidedWithAsteroid) {
       // Move the player ship to the starting position and remove a life
       go.position.x = gameManager.canvas.width/2;
@@ -278,7 +278,6 @@ function checkCollisions(go) {
  * Draws the player's available lives
  */
 function drawLives() {
-  let canvas = gameManager.canvas;
   let context = gameManager.context;
   context.font = HUD_FONT_SIZE + "px Arial";
   context.fillStyle = MAIN_COLOR;
@@ -310,7 +309,6 @@ function drawLives() {
  */
 function drawScore() {
   let context = gameManager.context;
-  let canvas = gameManager.canvas;
   context.font = HUD_FONT_SIZE + "px Arial";
   context.fillStyle = MAIN_COLOR;
   context.textAlign = "left";
@@ -348,10 +346,10 @@ function drawScore() {
    menuText = "Move forward: ↑";
    context.fillText(menuText, 0, 0);
    context.translate(0, canvas.height/16);
-   menuText = "Fire weapon: [Space Bar]"
+   menuText = "Fire weapon: [Space Bar]";
    context.fillText(menuText, 0, 0);
    context.translate(0, canvas.height/8);
-   menuText = "Press [Space Bar] to begin game!"
+   menuText = "Press [Space Bar] to begin game!";
    context.fillText(menuText, 0, 0);
    context.restore();
  }
@@ -389,7 +387,7 @@ function drawPauseMenu() {
   menuText = "Move forward: ↑";
   context.fillText(menuText, 0, 0);
   context.translate(0, canvas.height/16);
-  menuText = "Fire weapon: [Space Bar]"
+  menuText = "Fire weapon: [Space Bar]";
   context.fillText(menuText, 0, 0);
   context.restore();
 }
@@ -411,7 +409,6 @@ function drawGameLostMenu() {
   let menuText = "You lost!";
   context.fillText(menuText, 0, MENU_FONT_SIZE);
   context.font = HUD_FONT_SIZE + "px Arial";
-  let spacing = context.measureText(menuText).height;
   context.translate(0, canvas.height/8);
   menuText = "(Press Escape to start new game)";
   context.fillText(menuText, 0, 0);
@@ -530,7 +527,7 @@ function Vector2(x, y) {
  */
 Vector2.zero = function () {
   return new Vector2(0, 0);
-}
+};
 
 /**
  * Creates a new Vector2 object with the default values for down.
@@ -539,7 +536,7 @@ Vector2.zero = function () {
  */
 Vector2.down = function () {
   return new Vector2(0, 1);
-}
+};
 
 /**
  * Creates a new Vector2 object with the default values for left.
@@ -548,7 +545,7 @@ Vector2.down = function () {
  */
 Vector2.left = function () {
   return new Vector2(-1, 0);
-}
+};
 
 /**
  * Creates a new Vector2 object with the default values for right.
@@ -557,7 +554,7 @@ Vector2.left = function () {
  */
 Vector2.right = function () {
   return new Vector2(1, 0);
-}
+};
 
 /**
  * Creates a new Vector2 object with the default values for up.
@@ -566,7 +563,7 @@ Vector2.right = function () {
  */
 Vector2.up = function () {
   return new Vector2(0, -1);
-}
+};
 
 /**
  * Creates a randomized new Vector2 object with magnitude 1.
@@ -577,7 +574,7 @@ Vector2.random = function () {
   let newVector = Vector2.up();
   newVector.rotate((Math.random() + 1) * 2 * Math.PI);
   return newVector;
-}
+};
 
 /**
  * Calculates the whole clockwise angle (from 0-2PI radians) between two vectors.
@@ -591,11 +588,11 @@ Vector2.angleBetween = function (fromV, toV) {
     // If no input was received for the 'fromV' parameter.
     if (fromV === undefined) throw "The 'fromV' parameter is required!";
     // If the 'fromV' parameter is not a Vector2.
-    if (!fromV instanceof Vector2) throw "The 'fromV' parameter must be a Vector2 object.";
+    if (!(fromV instanceof Vector2)) throw "The 'fromV' parameter must be a Vector2 object.";
     // If no input was received for the 'toV' parameter.
     if (toV === undefined) throw "The 'toV' parameter is required!";
     // If the 'toV' parameter is not a Vector2.
-    if (!toV instanceof Vector2) throw "The 'toV' parameter must be a Vector2 object.";
+    if (!(toV instanceof Vector2)) throw "The 'toV' parameter must be a Vector2 object.";
   }
   catch (e) {
     console.log(e);
@@ -609,7 +606,7 @@ Vector2.angleBetween = function (fromV, toV) {
   // Calculate the angle.
   let angle = Math.atan2(det, dot);
   return angle;
-}
+};
 
 /**
  * Multiplies a vector's components by a scalar value.
@@ -624,7 +621,7 @@ Vector2.multiply = function (vector, scalar) {
     // If no input was received for the 'vector' parameter.
     if (vector === undefined) throw "The 'vector' parameter is required!";
     // If the 'vector' parameter is not a Vector2.
-    if (!vector instanceof Vector2) throw "The 'vector' parameter must be a Vector2 object.";
+    if (!(vector instanceof Vector2)) throw "The 'vector' parameter must be a Vector2 object.";
     // If no input was received for the 'scalar' parameter.
     if (scalar === undefined) throw "The 'scalar' parameter is required!";
     // If the 'scalar' parameter is not a number.
@@ -636,7 +633,7 @@ Vector2.multiply = function (vector, scalar) {
   // *** END INPUT VALIDATION ***
 
   return new Vector2 (vector.x * scalar, vector.y * scalar);
-}
+};
 
 /**
  * Adds a vector's components to another vector's components
@@ -652,11 +649,11 @@ Vector2.add = function (vectorA, vectorB) {
     // If no input was received for the 'vectorA' parameter.
     if (vectorA === undefined) throw "The 'vectorA' parameter is required!";
     // If the 'vectorA' parameter is not a Vector2.
-    if (!vectorA instanceof Vector2) throw "The 'vectorA' parameter must be a Vector2 object.";
+    if (!(vectorA instanceof Vector2)) throw "The 'vectorA' parameter must be a Vector2 object.";
     // If no input was received for the 'vectorB' parameter.
     if (vectorB === undefined) throw "The 'vectorB' parameter is required!";
     // If the 'vectorB' parameter is not a Vector2.
-    if (!vectorB instanceof Vector2) throw "The 'vectorB' parameter must be a Vector2 object.";
+    if (!(vectorB instanceof Vector2)) throw "The 'vectorB' parameter must be a Vector2 object.";
   }
   catch (e) {
     console.log(e);
@@ -665,7 +662,7 @@ Vector2.add = function (vectorA, vectorB) {
 
   // Return a new vector with components equal to the sum of the two input vector's components.
   return new Vector2(vectorA.x + vectorB.x, vectorA.y + vectorB.y);
-}
+};
 
 /**
  * Subtracts s vector's components from another vector's components
@@ -680,11 +677,11 @@ Vector2.subtract = function (vectorA, vectorB) {
     // If no input was received for the 'vectorA' parameter.
     if (vectorA === undefined) throw "The 'vectorA' parameter is required!";
     // If the 'vectorA' parameter is not a Vector2.
-    if (!vectorA instanceof Vector2) throw "The 'vectorA' parameter must be a Vector2 object.";
+    if (!(vectorA instanceof Vector2)) throw "The 'vectorA' parameter must be a Vector2 object.";
     // If no input was received for the 'vectorB' parameter.
     if (vectorB === undefined) throw "The 'vectorB' parameter is required!";
     // If the 'vectorB' parameter is not a Vector2.
-    if (!vectorB instanceof Vector2) throw "The 'vectorB' parameter must be a Vector2 object.";
+    if (!(vectorB instanceof Vector2)) throw "The 'vectorB' parameter must be a Vector2 object.";
   }
   catch (e) {
     console.log(e);
@@ -693,7 +690,7 @@ Vector2.subtract = function (vectorA, vectorB) {
 
   // Return a new vector with components equal to the difference of the two input vector's components.
   return new Vector2(vectorA.x - vectorB.x, vectorA.y - vectorB.y);
-}
+};
 
 /**
  * Returns a normalized version of a vector to have a magnitude (length) of 1, while keeping the same direction.
@@ -706,7 +703,7 @@ Vector2.normalize = function (vector) {
     // If no input was received for the 'vector' parameter.
     if (vector === undefined) throw "The 'vector' parameter is required!";
     // If the 'vector' parameter is not a Vector2.
-    if (!vector instanceof Vector2) throw "The 'vector' parameter must be a Vector2 object.";
+    if (!(vector instanceof Vector2)) throw "The 'vector' parameter must be a Vector2 object.";
   }
   catch (e) {
     console.log(e);
@@ -719,7 +716,7 @@ Vector2.normalize = function (vector) {
     result = Vector2.multiply(vector, 1/m);
   }
   return result;
-}
+};
 
 /**
  * Returns a new vector that has been interpolated by the percent amount between the two input vectors
@@ -734,11 +731,11 @@ Vector2.lerp = function (fromV, toV, percent) {
     // If no input was received for the 'fromV' parameter.
     if (fromV === undefined) throw "The 'fromV' parameter is required!";
     // If the 'fromV' parameter is not a Vector2.
-    if (!fromV instanceof Vector2) throw "The 'fromV' parameter must be a Vector2 object.";
+    if (!(fromV instanceof Vector2)) throw "The 'fromV' parameter must be a Vector2 object.";
     // If no input was received for the 'toV' parameter.
     if (toV === undefined) throw "The 'toV' parameter is required!";
     // If the 'toV' parameter is not a Vector2.
-    if (!toV instanceof Vector2) throw "The 'toV' parameter must be a Vector2 object.";
+    if (!(toV instanceof Vector2)) throw "The 'toV' parameter must be a Vector2 object.";
     // If no input was received for the 'percent' parameter.
     if (percent === undefined) throw "The 'percent' parameter is required!";
     // If the 'percent' parameter is not a number.
@@ -760,7 +757,7 @@ Vector2.lerp = function (fromV, toV, percent) {
   distance.multiply(percent);
   let result = Vector2.add(fromV, distance);
   return result;
-}
+};
 
 /**
  * Adds another vector's components to this vector's components
@@ -773,7 +770,7 @@ Vector2.prototype.add = function (otherVector) {
     // If no input was received for the 'otherVector' parameter.
     if (otherVector === undefined) throw "The 'otherVector' parameter is required!";
     // If the 'otherVector' parameter is not a Vector2.
-    if (!otherVector instanceof Vector2) throw "The 'otherVector' parameter must be a Vector2 object.";
+    if (!(otherVector instanceof Vector2)) throw "The 'otherVector' parameter must be a Vector2 object.";
   }
   catch (e) {
     console.log(e);
@@ -782,7 +779,7 @@ Vector2.prototype.add = function (otherVector) {
 
   this.x += otherVector.x;
   this.y += otherVector.y;
-}
+};
 
 /**
  * Subtracts another vector's components from this vector's components
@@ -795,7 +792,7 @@ Vector2.prototype.subtract = function (otherVector) {
     // If no input was received for the 'otherVector' parameter.
     if (otherVector === undefined) throw "The 'otherVector' parameter is required!";
     // If the 'otherVector' parameter is not a Vector2.
-    if (!otherVector instanceof Vector2) throw "The 'otherVector' parameter must be a Vector2 object.";
+    if (!(otherVector instanceof Vector2)) throw "The 'otherVector' parameter must be a Vector2 object.";
   }
   catch (e) {
     console.log(e);
@@ -804,7 +801,7 @@ Vector2.prototype.subtract = function (otherVector) {
 
   this.x -= otherVector.x;
   this.y -= otherVector.y;
-}
+};
 
 /**
  * Multiplies this vector's components by a scalar value
@@ -826,7 +823,7 @@ Vector2.prototype.multiply = function (scalar) {
 
   this.x *= scalar;
   this.y *= scalar;
-}
+};
 
 /**
  * Rotates this vector by an angle (radian) value.
@@ -864,7 +861,7 @@ Vector2.prototype.rotate = function (angle) {
    */
   this.x = newX;
   this.y = newY;
-}
+};
 
 /**
  * Calculates the magnitude (length) of this vector.
@@ -873,7 +870,7 @@ Vector2.prototype.rotate = function (angle) {
 Vector2.prototype.magnitude = function () {
   // Return the magnitude of the vector calculated using the pythagorean theorem.
   return Math.sqrt(this.x * this.x + this.y * this.y);
-}
+};
 
 /**
  * Normalizes this vector to have a magnitude (length) of 1,
@@ -885,7 +882,7 @@ Vector2.prototype.normalize = function () {
   if (m > 0) {
     this.multiply(1/m);
   }
-}
+};
 
 /**
  * Clamps the magnitude of this vector.
@@ -908,7 +905,7 @@ Vector2.prototype.clampMagnitude = function (max) {
     this.normalize();
     this.multiply(max);
   }
-}
+};
 
 /**
  * Sets this vector's components to new interpolated values between it and the to vector by the provided percent.
@@ -922,7 +919,7 @@ Vector2.prototype.lerp = function (toV, percent) {
     // If no input was received for the 'toV' parameter.
     if (toV === undefined) throw "The 'toV' parameter is required!";
     // If the 'toV' parameter is not a Vector2.
-    if (!toV instanceof Vector2) throw "The 'toV' parameter must be a Vector2 object.";
+    if (!(toV instanceof Vector2)) throw "The 'toV' parameter must be a Vector2 object.";
     // If no input was received for the 'percent' parameter.
     if (percent === undefined) throw "The 'percent' parameter is required!";
     // If the 'percent' parameter is not a number.
@@ -946,7 +943,7 @@ Vector2.prototype.lerp = function (toV, percent) {
 
   this.x = result.x;
   this.y = result.y;
-}
+};
 
 /**
  * Creates an instance of a GameObject.
@@ -964,19 +961,19 @@ function GameObject(position, direction, velocity, acceleration, collisionRadius
     // If no input was received for the 'position' parameter.
     if (position === undefined) throw "The 'position' parameter is required!";
     // If the 'position' parameter is not a Vector2.
-    if (!position instanceof Vector2) throw "The 'position' parameter must be a Vector2 object.";
+    if (!(position instanceof Vector2)) throw "The 'position' parameter must be a Vector2 object.";
     // If no input was received for the 'direction' parameter.
     if (direction === undefined) throw "The 'direction' parameter is required!";
     // If the 'direction' parameter is not a Vector2.
-    if (!direction instanceof Vector2) throw "The 'direction' parameter must be a Vector2 object.";
+    if (!(direction instanceof Vector2)) throw "The 'direction' parameter must be a Vector2 object.";
     // If no input was received for the 'velocity' parameter.
     if (velocity === undefined) throw "The 'velocity' parameter is required!";
     // If the 'velocity' parameter is not a Vector2.
-    if (!velocity instanceof Vector2) throw "The 'velocity' parameter must be a Vector2 object.";
+    if (!(velocity instanceof Vector2)) throw "The 'velocity' parameter must be a Vector2 object.";
     // If no input was received for the 'acceleration' parameter.
     if (acceleration === undefined) throw "The 'acceleration' parameter is required!";
     // If the 'acceleration' parameter is not a Vector2.
-    if (!acceleration instanceof Vector2) throw "The 'acceleration' parameter must be a Vector2 object.";
+    if (!(acceleration instanceof Vector2)) throw "The 'acceleration' parameter must be a Vector2 object.";
     // If no input was received for the 'collisionRadius' parameter.
     if (collisionRadius === undefined) throw "The 'collisionRadius' parameter is required!";
     // If the 'collisionRadius' parameter is not a number.
@@ -1028,7 +1025,7 @@ GameObject.prototype.checkCollisionWith = function (otherObjectType) {
     // If no input was received for the 'otherObjectType' parameter.
     if (otherObjectType === undefined) throw "The 'otherObjectType' parameter is required!";
     // If the 'otherObjectType' parameter is not a GameObject.
-    if (!otherObjectType instanceof GameObject) throw "The 'otherObjectType' parameter must be a GameObject object.";
+    if (!(otherObjectType instanceof GameObject)) throw "The 'otherObjectType' parameter must be a GameObject object.";
   }
   catch (e) {
     console.log(e);
@@ -1182,7 +1179,7 @@ Projectile.prototype.update = function () {
     let index = gameManager.gameObjects.indexOf(this);
     gameManager.gameObjects.splice(index, 1);
   }
-}
+};
 
 /** @override the draw function from the GameObject superclass */
 Projectile.prototype.draw = function () {
@@ -1270,7 +1267,7 @@ Asteroid.createSmall = function () {
                       Asteroid.smallNumSides, // numSides
                       1, // health
                       10); // scoreValue
-}
+};
 
 /**
  * Creates an instance of a medium Asteroid with default values for medium
@@ -1285,7 +1282,7 @@ Asteroid.createMedium = function () {
                       Asteroid.mediumNumSides, // numSides
                       2, // health
                       20); // scoreValue
-}
+};
 
 /**
  * Creates an instance of a large Asteroid with default values for large
@@ -1300,7 +1297,7 @@ Asteroid.createLarge = function () {
                       Asteroid.largeNumSides, // numSides
                       3, // health
                       30); // scoreValue
-}
+};
 
 /** @override The update function from the GameObject superclass */
 Asteroid.prototype.update = function () {
@@ -1324,7 +1321,7 @@ Asteroid.prototype.update = function () {
   if (this.position.y < 0) {
     this.position.y = canvas.height;
   }
-}
+};
 
 /** @override the draw function from the GameObject superclass */
 Asteroid.prototype.draw = function () {
