@@ -1,0 +1,65 @@
+.showcase {
+  margin: auto;
+  overflow: auto;
+  padding: 1em;
+}
+
+.gamesSlideshow {
+  margin: auto;
+  list-style: none;
+}
+
+.gamesSlideshow img {
+  padding: 1em;
+  border: 1px solid #ccc;
+  background-color: #eee;
+}
+
+.gamesNav {
+  margin: auto;
+}
+
+.gamesNav li {
+  float: left;
+  clear: left;
+  margin: 8px;
+  list-style: none;
+  overflow: auto;
+}
+
+.gamesNav a {
+  padding: 3px;
+  display: block;
+  border: 1px solid #ccc;
+}
+
+.gamesNav li.activeSlide a {
+  background-color: #539987;
+}
+
+.gamesNav a:focus {
+  outline: none;
+}
+
+.gamesNav img {
+  border: none;
+  display: block;
+}
+
+ul.gamesSlideshow a {
+  text-decoration: none;
+}
+
+ul.gamesSlideshow a:hover {
+	filter: brightness(80%);
+}
+
+ul.gamesSlideshow li .title {
+  text-align: center;
+  color: #ffffff;
+  font-size: 1.125em
+}
+ul.gamesSlideshow li .author {
+  text-align: center;
+  color: #ffffff;
+}
