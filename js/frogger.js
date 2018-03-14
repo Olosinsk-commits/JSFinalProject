@@ -158,11 +158,13 @@ var pad6 = false;
 
 	//Lives trackers
 var lives = 3;
+
 var livesLost = 0;
 
 	//Win/loss counter
 var play = true;
 var victoryCondition = false;
+var defeatCondition = false;
 
 //variables for drawImage Method
 var sx = 0;
@@ -616,17 +618,23 @@ function drawLives() {
 		context.font = "30px Arial";
 		context.fillText("Lives: " + (lives - livesLost), (canvas.width/2)-70, 525);
 	}
+	if (lives <= 0) {
+		lives = 0;
+		gameOver();
+	}
 }
 
 function gameOver() {
+
 	if (lives - livesLost == 0) {
+	
 		context.save();
 		play = false;
+		defeatCondition = true;
 		context.fillStyle = "white";
 		context.font = "72px Arial";
-		context.fillText("GAME OVER", 0, 100);
+		context.fillText("GAME OVER", 300, 100);
 		context.font = "28px Arial";
-		context.fillText("Refresh to play again!");
 		context.restore();
 	}
 }
@@ -638,7 +646,15 @@ function victory() {
 		play = false;	
 	}
 }	
+//defeat screen
+function defeatScreen() {
+	context.fillStyle = "white";
+	context.font = "30px Arial";
+	context.textAlign = "center";
+	context.fillText("You Lost! Refresh page to play again.", (canvas.width/2), canvas.height/2);
+}
 
+//victory screen
 function victoryScreen() {
 		context.fillStyle = "white";
 		context.font = "30px Arial";
@@ -665,6 +681,7 @@ function draw() {
 	onPad();
 	floatLogs();
 	victory();
+	gameOver();
 
 	
 }
@@ -672,6 +689,11 @@ function draw() {
 		gameOver();
 		drawLives();
 		victoryScreen(); 
+	}
+	if (defeatCondition){
+		gameOver();
+		drawLives();
+		defeatScreen();
 	}
 	requestAnimationFrame(draw); //refreshes based on the the user's refresh rate.
 }
