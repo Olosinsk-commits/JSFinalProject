@@ -23,8 +23,12 @@ const THRUST_COLOR = '#FFFF00';
 // Width and height of the ship for drawing the avatar.
 const SHIP_WIDTH = 5;
 const SHIP_HEIGHT = 10;
-// Accelleration rate of the player's ship.
+// Acceleration rate of the player's ship.
 const PLAYER_SHIP_ACCELLERATION = 2;
+// Max acceleration of the player's ship.
+const PLAYER_MAX_ACCELERATION = 3;
+// Jerk rate (increase in acceleration speed) of the player's ship
+const PLAYER_SHIP_JERK = 0.005;
 // Rotation rate of the player's ship. 3 degrees in Radians.
 const PLAYER_SHIP_ROTATION_SPEED = 3 * (Math.PI / 180);
 // Rotation rate of Asteroids in the game. 0.5 of a degree in Radians.
@@ -336,7 +340,8 @@ function drawBackground() {
 }
 
 /**
- * Checks the collisions of the input game object
+ * Checks the collisions of the input game object and handles
+* the outcome based on the GameObject's instance type.
  * @param {GameObject} go The GameObject to check the collisions for.
  */
 function checkCollisions(go) {
@@ -575,26 +580,30 @@ function handleInput(time) {
   // Get a reference to the playerShip from the gameManager.
   let ship = gameManager.playerShip;
 
-  PLAYER_SHIP_ACCELLERATION PLAYER_SHIP_ROTATION_SPEED
-  let acceleration = 2;
-  let rotationAngle = 3 * (Math.PI / 180);
+  // If the escape key was pressed and it is not being held down
   if (gameManager.CONTROLS_STATE.escape && !gameManager.CONTROLS_HELD.escape) {
+    // Mark the key as being held down
     gameManager.CONTROLS_HELD.escape = true;
+    // If the game is not just beginning and it is not the end of the game.
     if (!gameManager.gameBegin && !gameManager.gameOver) {
       // Pause the game.
       gameManager.gamePaused = !gameManager.gamePaused;
     }
+    // Otherwise, if the game is over.
     else if (gameManager.gameOver) {
-      gameManager.CONTROLS_HELD.space = true;
+      // Reset the game.
       gameManager.reset();
     }
   }
+  // If the game is not paused
   if (!gameManager.gamePaused) {
+    // If the game has not just begun and is not over
     if (!gameManager.gameBegin && !gameManager.gameOver) {
+      // If the up control was pressed
       if (gameManager.CONTROLS_STATE.up) {
         // Accellerate the ship in the direction it is currently facing.
-        ship.acceleration = Vector2.lerp(ship.acceleration, Vector2.multiply(ship.direction, PLAYER_SHIP_ACCELLERATION), 0.005);
-        ship.acceleration.clampMagnitude(3);
+        ship.acceleration = Vector2.lerp(ship.acceleration, Vector2.multiply(ship.direction, PLAYER_SHIP_ACCELLERATION), PLAYER_SHIP_JERK);
+        ship.acceleration.clampMagnitude(PLAYER_MAX_ACCELERATION);
       }
       if (gameManager.CONTROLS_STATE.left) {
         ship.direction.rotate(-PLAYER_SHIP_ROTATION_SPEED);
