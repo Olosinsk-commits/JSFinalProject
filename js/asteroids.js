@@ -46,7 +46,7 @@ $(document).ready(function() {
     gameManager.start();
   });
 
-// Game manager object to maintain the state of the game
+// Game manager object to set up and maintain the state of the game
 var gameManager = {
     // Reference to game canvas.
     canvas: null,
@@ -599,19 +599,24 @@ function handleInput(time) {
   if (!gameManager.gamePaused) {
     // If the game has not just begun and is not over
     if (!gameManager.gameBegin && !gameManager.gameOver) {
-      // If the up control was pressed
+      // If the 'up' control was pressed
       if (gameManager.CONTROLS_STATE.up) {
         // Accellerate the ship in the direction it is currently facing.
         ship.acceleration = Vector2.lerp(ship.acceleration, Vector2.multiply(ship.direction, PLAYER_SHIP_ACCELLERATION), PLAYER_SHIP_JERK);
         ship.acceleration.clampMagnitude(PLAYER_MAX_ACCELERATION);
       }
+      // If the 'left' control was pressed
       if (gameManager.CONTROLS_STATE.left) {
+        // Rotate the ship counter clockwise at a rate of PLAYER_SHIP_ROTATION_SPEED.
         ship.direction.rotate(-PLAYER_SHIP_ROTATION_SPEED);
       }
+      // If the 'right' control was pressed
       if (gameManager.CONTROLS_STATE.right) {
+        // Rotate the ship clockwise at a rate of PLAYER_SHIP_ROTATION_SPEED.
         ship.direction.rotate(PLAYER_SHIP_ROTATION_SPEED);
       }
     }
+    // If the 'space' control was pressed
     if (gameManager.CONTROLS_STATE.space) {
       // If this is the beginning of the game, space starts the game.
       if (gameManager.gameBegin) {
@@ -632,6 +637,7 @@ function handleInput(time) {
       }
     }
   }
+  // Otherwise, reset the state of the controls.
   else {
     if (gameManager.CONTROLS_STATE.up) {gameManager.CONTROLS_STATE.up = false;}
     if (gameManager.CONTROLS_STATE.left) {gameManager.CONTROLS_STATE.left = false;}
@@ -642,6 +648,8 @@ function handleInput(time) {
 
 /**
  * Creates an instance of a Vector2 with an x and y component.
+ * The Vector2 class will be used for storing and manipulating GameObject's
+ * position, velocity, accelleration, and direction.
  * @constructor
  * @param {number} x The Vector2's x component.
  * @param {number} y The Vector2's y component.
@@ -680,6 +688,8 @@ Vector2.zero = function () {
 
 /**
  * Creates a new Vector2 object with the default values for down.
+ * This lets us instantiate a named configuration so it's easier
+ * to see what the components mean and allows for easier simple code reuse.
  * @return {Vector2} The new Vector2 object.
  * @static
  */
@@ -689,6 +699,8 @@ Vector2.down = function () {
 
 /**
  * Creates a new Vector2 object with the default values for left.
+ * This lets us instantiate a named configuration so it's easier
+ * to see what the components mean and allows for easier simple code reuse.
  * @return {Vector2} The new Vector2 object.
  * @static
  */
@@ -698,6 +710,8 @@ Vector2.left = function () {
 
 /**
  * Creates a new Vector2 object with the default values for right.
+ * This lets us instantiate a named configuration so it's easier
+ * to see what the components mean and allows for easier simple code reuse.
  * @return {Vector2} The new Vector2 object.
  * @static
  */
@@ -707,6 +721,8 @@ Vector2.right = function () {
 
 /**
  * Creates a new Vector2 object with the default values for up.
+ * This lets us instantiate a named configuration so it's easier
+ * to see what the components mean and allows for easier simple code reuse.
  * @return {Vector2} The new Vector2 object.
  * @static
  */
@@ -721,6 +737,7 @@ Vector2.up = function () {
  */
 Vector2.random = function () {
   let newVector = Vector2.up();
+  // Rotate by some random angle between 0 and 360 degrees / 2 pi radians.
   newVector.rotate((Math.random() + 1) * 2 * Math.PI);
   return newVector;
 };
@@ -752,7 +769,7 @@ Vector2.angleBetween = function (fromV, toV) {
   let dot = fromV.x * toV.x + fromV.y * toV.y;
   // Calculate the determinant.
   let det = fromV.x * toV.y - fromV.y * toV.x;
-  // Calculate the angle.
+  // Calculate the angle using atan2
   let angle = Math.atan2(det, dot);
   return angle;
 };
@@ -1057,7 +1074,10 @@ Vector2.prototype.clampMagnitude = function (max) {
 };
 
 /**
- * Sets this vector's components to new interpolated values between it and the to vector by the provided percent.
+ * Sets this vector's components to new interpolated values between
+ * it and the to vector by the provided percent.
+ * This function lets us smoothly transition from one vector's coordinates to another.
+ * This is useful for transitioning accelleration and velocity vectors.
  * @param {Vector2} toV The vector to interpolate to
  * @param {number} percent The percent to interpolate by (0-1) inclusive
  * @static
@@ -1097,9 +1117,9 @@ Vector2.prototype.lerp = function (toV, percent) {
 /**
  * Creates an instance of a GameObject.
  * This constructor is only so that subclasses can call it and set all the same properties.
- * The GameObject class encapsulates an entity in the game that has a position, direction,
+ * The GameObject class describes an entity in the game that has a position, direction,
  * velocity, acceleration, and collision radius.
- * These properties are used by its update method to change it's properties based on an
+ * These properties are used by its update method to make the object follow an
  * approximation of how physics would interact with an object with the same properties.
  * @constructor
  * @abstract
@@ -1149,7 +1169,10 @@ function GameObject(position, direction, velocity, acceleration, collisionRadius
   this.collisionRadius = collisionRadius;
 }
 
-// Abstract update method for the GameObject base class.
+/**
+ * Abstract update method for the GameObject base class.
+ * Must be overriden in a subclass to update any atributes of the GameObject instance.
+ */
 GameObject.prototype.update = function () {
   try {
     throw "Cannot instantiate abstract class";
@@ -1159,7 +1182,11 @@ GameObject.prototype.update = function () {
   }
 };
 
-// Abstract draw method for the GameObject base class.
+/**
+ * Abstract draw method for the GameObject base class.
+ * Must be overriden in a subclass to draw the graphical
+ * representation of the GameObject at it's current position and rotation.
+ */
 GameObject.prototype.draw = function () {
   try {
     throw "Cannot instantiate abstract class";
@@ -1171,7 +1198,9 @@ GameObject.prototype.draw = function () {
 
 /**
  * Checks whether this game object collided with another game object that matches otherObjectType.
- * @param {GameObject} otherObjectType Takes the constructor name of the object to check collision with.
+ * Returns null if it has not collided with another object
+ * or returns a reference to the object that it collided with.
+ * @param {GameObject} otherObjectType Takes the constructor name of the object to check for a collision with.
  * @return {?GameObject} The matching object that collided with this one (if found).
  */
 GameObject.prototype.checkCollisionWith = function (otherObjectType) {
@@ -1247,7 +1276,12 @@ PlayerShip.prototype = Object.create(GameObject.prototype);
 // Set the PlayerShip constructor to the Asteroid constructor method.
 PlayerShip.prototype.constructor = PlayerShip;
 
-/** @override The update function from the GameObject superclass */
+/**
+ * @override The update function from the GameObject superclass
+ * Updates the PlayerShip's velocity based on its acceleration,
+ * and it position based on it's velocity,
+ * and warps the PlayerShip to the opposite side of the map if it reaches an edge.
+ */
 PlayerShip.prototype.update = function () {
   let canvas = gameManager.canvas;
   this.velocity.add(this.acceleration);
@@ -1270,7 +1304,10 @@ PlayerShip.prototype.update = function () {
   }
 };
 
-/** @override The draw function from the GameObject superclass */
+/**
+ * @override The draw function from the GameObject superclass
+ * Draws the graphical representation of the PlayerShip at it's current position and rotation.
+ */
 PlayerShip.prototype.draw = function () {
   let context = gameManager.context;
   context.save();
@@ -1309,9 +1346,13 @@ PlayerShip.prototype.draw = function () {
 };
 
 /**
- * Creates an instance of a Projectile.
- * Projectile are GameObjects that are spawned when the PlayerShip fires.
- * The Projectile can damage an Asteroid
+ * Creates an instance of a Projectile which is a subclass of GameObject.
+ * Projectiles are spawned when the PlayerShip fires.
+ * Projectiles can damage an Asteroid.
+ * Unlike the PlayerShip and Asteroids, Projectiles do not warp to the other
+ * side of the map when the reach an edge.
+ * Instead they are destroyed when they reach an edge to make the game more
+ * challenging and less visually cluttered.
  * @constructor
  * @param {Vector2} position The Projectile's position vector.
  * @param {Vector2} direction The Projectile's direction vector.
@@ -1328,8 +1369,13 @@ Projectile.prototype = Object.create(GameObject.prototype);
 // Set the Projectile constructor to the Asteroid constructor method.
 Projectile.prototype.constructor = Projectile;
 
-/** @override The update function from the GameObject superclass */
+/**
+ * @override The update function from the GameObject superclass
+ * Updates the Projectile's position based on it's velocity,
+ * and destroys the Projectile if it reaches an edge.
+ */
 Projectile.prototype.update = function () {
+  // Get a reference to the game canvas
   let canvas = gameManager.canvas;
   // Update the projectile's position based on it's velocity.
   this.position.add(this.velocity);
@@ -1345,7 +1391,10 @@ Projectile.prototype.update = function () {
   }
 };
 
-/** @override the draw function from the GameObject superclass */
+/**
+ * @override the draw function from the GameObject superclass
+ * Draws the graphical representation of the Projectile at it's current position and rotation.
+ */
 Projectile.prototype.draw = function () {
   let context = gameManager.context;
   let length = 5;
@@ -1420,6 +1469,7 @@ Asteroid.prototype.constructor = Asteroid;
 
 /**
  * Constants for the number of sides of the three sizes of Asteroid
+ * Used for instantiating and comparing Asteroids of different sizes.
  * @static
  */
 Asteroid.smallNumSides = 3;
@@ -1428,6 +1478,8 @@ Asteroid.largeNumSides = 5;
 
 /**
  * Creates an instance of a small Asteroid with default values for small
+ * This lets us instantiate a named configuration so it's easier
+ * to see what the components mean and allows for easier simple code reuse.
  * @static
  */
 Asteroid.createSmall = function () {
@@ -1443,6 +1495,8 @@ Asteroid.createSmall = function () {
 
 /**
  * Creates an instance of a medium Asteroid with default values for medium
+ * This lets us instantiate a named configuration so it's easier
+ * to see what the components mean and allows for easier simple code reuse.
  * @static
  */
 Asteroid.createMedium = function () {
@@ -1458,6 +1512,8 @@ Asteroid.createMedium = function () {
 
 /**
  * Creates an instance of a large Asteroid with default values for large
+ * This lets us instantiate a named configuration so it's easier
+ * to see what the components mean and allows for easier simple code reuse.
  * @static
  */
 Asteroid.createLarge = function () {
@@ -1471,8 +1527,14 @@ Asteroid.createLarge = function () {
                       30); // scoreValue
 };
 
-/** @override The update function from the GameObject superclass */
+/**
+ * @override The update function from the GameObject superclass
+ * Updates the asteroid's position based on it's velocity,
+ * rotates it by the constant for asteroid rotation speed
+ * and warps the asteroid to the opposite side of the map if it reaches an edge.
+ */
 Asteroid.prototype.update = function () {
+  // Get a reference to the game canvas
   let canvas = gameManager.canvas;
   // Update the Asteroid's position based on it's velocity.
   this.position.add(this.velocity);
@@ -1494,7 +1556,10 @@ Asteroid.prototype.update = function () {
   }
 };
 
-/** @override the draw function from the GameObject superclass */
+/**
+ * @override the draw function from the GameObject superclass
+ * Draws the graphical representation of the Asteroid at it's current position and rotation.
+ */
 Asteroid.prototype.draw = function () {
   let context = gameManager.context;
   context.save();
