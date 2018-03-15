@@ -8,7 +8,7 @@
  * Code to play a game of Asteroids.
  */
 
-// Array mapping keycode values to key names
+// Array of keycode values to map them to key names
 const KEY_CODES = {27: 'escape', 32: 'space', 37: 'left', 38: 'up', 39: 'right', 40: 'down'};
 // 20px font size for the heads up display (score and lives)
 const HUD_FONT_SIZE = 20;
@@ -48,7 +48,7 @@ $(document).ready(function() {
 
 // Game manager object to set up and maintain the state of the game
 var gameManager = {
-    // Reference to game canvas.
+    // Variable to store a reference to the game canvas
     canvas: null,
     // Initializes the game state and starts the main game update and draw loop
     start: function () {
@@ -59,14 +59,14 @@ var gameManager = {
         }
         // Check whether canvas is available in the browser
         if (this.canvas.getContext) {
-          // If we do not already have a reference to the context.
+          // If we do not already have a reference to the context
           if (!this.context) {
             // Get a reference to the context.
             this.context = this.canvas.getContext('2d');
           }
           // Array to store the controls states to be checked by the update loop to determine what action to do.
           this.CONTROLS_STATE = [];
-          // Array to store whether the control is being held down to avoid unwanted repeated inputs
+          // Array to store whether the control is being held down to avoid unwanted repeated inputs.
           this.CONTROLS_HELD = [];
           // Initialize both the state and held arrays for each key with the status set to false
           for (let keyCode in KEY_CODES) {
@@ -98,7 +98,7 @@ var gameManager = {
            * The game will loop over all of the GameObjects to update and draw each one.
            * When a game object is destroyed, it is removed from this array so that it is
            * no longer updated or drawn, and it will be garbage collected
-           * since there is no longer a reference to it.
+           * since there is no longer a reference to it.w
            */
           this.gameObjects = [];
           /* Create and store a reference to a PlayerShip object
@@ -125,51 +125,35 @@ var gameManager = {
      * This will be used when the player has lost and wants to start a new game.
      */
     reset: function () {
-      // Array to store the controls states to be checked by the update loop to determine what action to do.
+      // Reset array to store the controls states to be checked by the update loop to determine what action to do.
       this.CONTROLS_STATE = [];
-      // Array to store whether the control is being held down to avoid unwanted repeated inputs
+      // Reset array to store whether the control is being held down to avoid unwanted repeated inputs
       this.CONTROLS_HELD = [];
-      // Initialize both the state and held arrays for each key with the status set to false
+      // Re-initialize both the state and held arrays for each key with the status set to false
       for (let keyCode in KEY_CODES) {
         this.CONTROLS_STATE[KEY_CODES[keyCode]] = false;
         this.CONTROLS_HELD[KEY_CODES[keyCode]] = false;
       }
-      // Whether we are just beginning the game (stops the update loop and shows the start menu)
+      // Reset whether we are just beginning the game (stops the update loop and shows the start menu)
       this.gameBegin = true;
-      // Whether the game is over (stops the update loop and shows the game over menu)
+      // Reset whether the game is over (stops the update loop and shows the game over menu)
       this.gameOver = false;
-      // Whether the game is paused (stops the update loop and shows the pause menu)
+      // Reset whether the game is paused (stops the update loop and shows the pause menu)
       this.gamePaused = false;
-      // Start the player with 3 lives. If the player runs out of lives, the game is over.
+      // Resset the player with 3 lives. If the player runs out of lives, the game is over.
       this.playerLives = 3;
-      // Start the player with a score of 0.
+      // Restart the player with a score of 0.
       this.playerScore = 0;
-      // Fire rate of 125ms for the player ship's weapon
-      this.fireRate = 125;
-      /* Stores the next time when the ship can fire again.
-       * The game loop updates this when the player fires
-       * to the current time in ms plus fireRate and checks
-       * whether the current time is greater than nextFire
-       * before letting the ship fire again.
-       */
+      // Reset the next fire time to 0
       this.nextFire = 0;
-      /* Array of the active GameObjects in the game.
-       * The game will loop over all of the GameObjects to update and draw each one.
-       * When a game object is destroyed, it is removed from this array so that it is
-       * no longer updated or drawn, and it will be garbage collected
-       * since there is no longer a reference to it.
-       */
+      // Reset the array of GameObjects
       this.gameObjects = [];
-      /* Create and store a reference to a PlayerShip object
-       * spawned at the center of the canvas, facing up,
-       * with zero velocity and acceleration, and a collisionRadius of 12.
-       */
-      this.playerShip = new PlayerShip(new Vector2(this.canvas.width/2, this.canvas.height/2), // position
-                                       Vector2.up(), // direction
-                                       Vector2.zero(), // velocity
-                                       Vector2.zero(), // acceleration
-                                       12); // collisionRadius
-      // Add the playerShip to the array of gameObjects so that it gets updated and drawn.
+      // Reset the playerShip's atributes to it's starting point
+      this.playerShip.position = new Vector2(this.canvas.width/2, this.canvas.height/2); // position
+      this.playerShip.direction = Vector2.up(); // direction
+      this.playerShip.velocity = Vector2.zero(); // velocity
+      this.playerShip.acceleration = Vector2.zero(); // acceleration
+      // Re-add the playerShip to the array of gameObjects so that it gets updated and drawn.
       this.gameObjects.push(this.playerShip);
       // Reset the asteroidManager's number of asteroids to spawn to 3.
       this.asteroidManager.numAsteroidsSpawn = 3;
@@ -193,15 +177,15 @@ var gameManager = {
           // Set the new asteroid's position to a random location within the bounds of the canvas.
           as.position = new Vector2(Math.random() * gameManager.canvas.width,
                                     Math.random() * gameManager.canvas.height);
-          // Set the new asteroid's velocity to a random unit vector
+          // Set the new asteroid's velocity to a random unit vector.
           as.velocity = Vector2.random();
           // Add the new asteroid to the gameObjects array so that it gets updated and drawn.
           gameManager.gameObjects.push(as);
         }
       },
       /**
-       * Called when an Asteroid needs to be destroyed
-       * to check whether child asteroids or a new wave needs to be spawned,
+       * Function to handle when an Asteroid gets destroyed that
+       * checks whether child asteroids or a new wave needs to be spawned,
        * and removes the input asteroid from the gameObjects array.
        * @param {Asteroid} as The Asteroid instance to destroy.
        */
@@ -222,7 +206,7 @@ var gameManager = {
         if (as.numSides !== Asteroid.smallNumSides) {
           // Create two smaller asteroids
           for (let i = 0; i < 2; i++) {
-            // Reference for a new asteroid
+            // Reference variable for a new asteroid
             let newAsteroid = null;
             // If the asteroid was a large asteroid
             if (as.numSides === Asteroid.largeNumSides) {
@@ -236,7 +220,7 @@ var gameManager = {
             }
             // Set the new asteroid's position to the original asteroid's position.
             newAsteroid.position = new Vector2(as.position.x, as.position.y);
-            // But give it a new random velocity
+            // And give it a new random velocity
             newAsteroid.velocity = Vector2.random();
             // Add the new asteroid to the gameObjects array so that it gets updated and drawn
             gameManager.gameObjects.push(newAsteroid);
@@ -269,9 +253,21 @@ var gameManager = {
 /**
  * Updates the game state and draws each game element based on the current state.
  * @param {number} time The amount of time that has elapsed since the last update.
-  * time is Used to determine how quickly the player may fire.
+ * The 'time' parameter is used to determine how quickly the player may fire.
  */
 function update(time) {
+  // *** BEGIN INPUT VALIDATION ***
+  try {
+    // If no input was received for the 'time' parameter.
+    if (time === undefined) throw "The 'time' parameter is required!";
+    // If the 'time' parameter is not a number.
+    if (typeof time !== 'number') throw "The 'time' parameter must be a number.";
+  }
+  catch (e) {
+    console.log(e);
+  }
+  // *** END INPUT VALIDATION ***
+
   /* The input states are set by the getInput() handler which is called by the browser outside of this loop.
    * hndleInput is called in this loop to perform the correct action based on the input states.
    */
@@ -577,6 +573,18 @@ function getInput(e) {
  * @param {number} time The elapsed time since the game started.
  */
 function handleInput(time) {
+  // *** BEGIN INPUT VALIDATION ***
+  try {
+    // If no input was received for the 'time' parameter.
+    if (time === undefined) throw "The 'time' parameter is required!";
+    // If the 'time' parameter is not a number.
+    if (typeof time !== 'number') throw "The 'time' parameter must be a number.";
+  }
+  catch (e) {
+    console.log(e);
+  }
+  // *** END INPUT VALIDATION ***
+
   // Get a reference to the playerShip from the gameManager.
   let ship = gameManager.playerShip;
 
@@ -1417,7 +1425,7 @@ Projectile.prototype.draw = function () {
  * The player must shoot at the Asteroids to damage them enough to destroy them and earn points.
  * When an Asteroid is destroyed, it spawns smaller child asteroids
  * (unless it was already the smallest size).
- * Like the PlayerShip, Asteroids, will warp to the opposite side of the gameCanvas when they reach an edge.
+ * Like the PlayerShip, Asteroids will warp to the opposite side of the gameCanvas when they reach an edge.
  * @constructor
  * @param {Vector2} position The Asteroid's position vector.
  * @param {Vector2} direction The Asteroid's direction vector.
