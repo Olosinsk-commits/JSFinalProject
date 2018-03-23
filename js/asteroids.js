@@ -1217,7 +1217,7 @@ GameObject.prototype.checkCollisionWith = function (otherObjectType) {
     // If no input was received for the 'otherObjectType' parameter.
     if (otherObjectType === undefined) throw "The 'otherObjectType' parameter is required!";
     // If the 'otherObjectType' parameter is not a GameObject.
-    if (!(otherObjectType instanceof GameObject)) throw "The 'otherObjectType' parameter must be a GameObject object.";
+    if (!(otherObjectType.prototype instanceof GameObject)) throw "The 'otherObjectType' parameter must be a GameObject object.";
   }
   catch (e) {
     console.log(e);
